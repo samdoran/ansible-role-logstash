@@ -11,7 +11,7 @@
 
 - name: Copy logstash GPG key
   copy: src=GPG-KEY-elasticsearch
-        dest=/etc/pki/rpm-pgp/GPG-KEY-elasticsearch
+        dest=/etc/pki/rpm-gpg/GPG-KEY-elasticsearch
         owner=root
         group=root
         mode=0644
