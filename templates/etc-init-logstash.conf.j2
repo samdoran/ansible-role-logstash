@@ -17,7 +17,7 @@ expect fork
 chdir /var/logstash
 
 env LS_BIN=/opt/logstash/logstash.jar
-env LS_CONFIG=/etc/logstash/parser.conf
+env LS_CONFIG=/etc/logstash/{% if 'ls_parser' in group_names %}parser{% endif %}{% if "ls_shipper" in group_names %}shipper{% endif %}.conf
 env LS_LOG=/var/log/logstash.log
 
 script

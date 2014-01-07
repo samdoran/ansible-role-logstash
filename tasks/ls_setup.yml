@@ -1,6 +1,6 @@
 ---
 - name: Copy logstash upstart config
-  copy: src=etc-init-logstash.conf dest=/etc/init/logstash.conf owner=root group=root mode=0644
+  template: src=etc-init-logstash.conf.j2 dest=/etc/init/logstash.conf owner=root group=root mode=0644
   tags:
     - logstash
     - config
