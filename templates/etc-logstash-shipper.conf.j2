@@ -1,0 +1,90 @@
+input {
+
+# --- Standard syslogs in JSON format --- #
+
+    file {
+        path => "/var/log/remote/192.168.40.1*/**/*.syslog.json.log"
+        exclude => [ "apache*" , "nginx*" , "audit*" , "mysql*" ]
+        start_position => "beginning"
+        codec => "json"
+        tags => [ "syslog" ]
+        type => "syslog"
+    }
+
+# --- Logs that need grokking --- #
+
+    # file {
+    #     type => "apache-access"
+    #     path => "/var/log/remote/*/apache/apache-access*log"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "json_event"
+    #     tags => [ "apache" , "access" ]
+    # }
+
+    # file {
+    #     type => "apache-error"
+    #     path => "/var/log/remote/*/apache/apache-error*log"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "json_event"
+    #     tags => [ "apache" , "error" ]
+    # }
+
+    # file {
+    #     type => "audit"
+    #     path => "/var/log/remote/*/audit/audit-log*log"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "audit" ]
+    # }
+
+    # file {
+    #     type => "nginx-access"
+    #     path => "/var/log/remote/*/nginx/nginx-access.log.20130828*"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "nginx", "access" ]
+    # }
+
+    # file {
+    #     type => "nginx-error"
+    #     path => "/var/log/remote/*/nginx/nginx-error.log.20130828*"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "nginx", "error" ]
+    # }
+
+}
+
+filter {
+    if [type] == "syslog" {
+        if [program] != "" {
+            mutate {
+                add_tag => [ "%{program}" ]
+            }
+        }
+
+        mutate {
+            replace => [ "host" , "%{source_host}" ]
+            remove_field => [ "source_host" ]
+        }
+    }
+}
+
+output {
+
+    # stdout { debug => true }
+
+    redis {
+        host => [ "stint35.royall.com" , "stint36.royall.com"]
+        shuffle_hosts => true
+        port => "5678"
+        data_type => "list"
+        key => "logstash"
+    }
+
+}

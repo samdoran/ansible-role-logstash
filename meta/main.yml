@@ -1,0 +1,3 @@
+---
+dependencies:
+  - { role: ls_common }
