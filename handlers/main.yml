@@ -1,0 +1,7 @@
+---
+- name: restart logstash
+  service: name=logstash state=restarted
+
+- name: Install Elasticsearch GPG key
+  command: rpm --import rpm --import /etc/pki/rpm-gpg/GPG-KEY-elasticsearch
+  tags: yum
