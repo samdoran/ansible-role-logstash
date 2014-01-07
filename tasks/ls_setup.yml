@@ -18,13 +18,6 @@
   user: name=logstash group=logreader home=/var/logstash system=yes uid=498
   tags: logstash
 
-- name: Copy logstash parser configuration
-  template: src=etc-logstash-parser.conf.j2 dest=/etc/logstash/parser.conf owner=root group=root mode=0644
-  tags:
-    - logstash
-    - config
-  notify: restart logstash
-
 - name: Create /opt/logstash
   file: path=/opt/logstash owner=root group=logreader mode=0750 state=directory recurse=yes
   tags: logstash
@@ -32,13 +25,6 @@
 - name: Copy logstash flat jar
   copy: src=logstash-{{ ls_ver }}-flatjar.jar dest=/opt/logstash/logstash.jar owner=root group=root mode=0644
   tags: logstash
-  notify: restart logstash
-
-- name: Copy logstash patterns
-  copy: src=patterns dest=/opt/logstash owner=root group=logreader mode=0640
-  tags:
-    - logstash
-    - config
   notify: restart logstash
 
 - name: Create logstash.log file
