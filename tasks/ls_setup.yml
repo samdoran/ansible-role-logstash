@@ -24,7 +24,9 @@
 
 - name: Copy logstash flat jar
   copy: src=logstash-{{ ls_ver }}-flatjar.jar dest=/opt/logstash/logstash.jar owner=root group=root mode=0644
-  tags: logstash
+  tags:
+    - logstash
+    - flatjar
   notify: restart logstash
 
 - name: Create logstash.log file
