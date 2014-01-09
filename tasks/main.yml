@@ -11,4 +11,5 @@
   tags:
     - logstash
     - config
+    - patterns
   notify: restart logstash
