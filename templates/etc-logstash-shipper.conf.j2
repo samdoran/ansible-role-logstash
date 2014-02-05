@@ -3,7 +3,7 @@ input {
 # --- Standard syslogs in JSON format --- #
 
     file {
-        path => "/var/log/remote/192.168.40.1*/**/*.syslog.json.log"
+        path => "/var/log/remote/ikura3/**/*.syslog.json.log"
         exclude => [ "apache*" , "nginx*" , "audit*" , "mysql*" ]
         start_position => "beginning"
         codec => "json"
