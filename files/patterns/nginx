@@ -1,27 +1,27 @@
-NGINX %{IPORHOST:clientip) %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\]  \"(?:%{WORD:verb} %{URIPATHPARAM:request}(?: HTTP/%{NUMBER:httpversion})?|-)\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) \"(?:%{URI:referrer}|-)\" %{QS:agent} %{NUMBER:request_time} %{NUMBER:upstream_response_time} %{NUMBER:gzip_ratio} (?:%{WORD:cache_hit}|-)%{GREEDYDATA}
+NGINX %{IPORHOST:client_ip) %{USER:website} %{USER:auth} \[%{HTTPDATE:timestamp}\]  \"(?:%{WORD:method} %{URIPATHPARAM:request}(?: HTTP/%{NUMBER:httpversion})?|-)\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) \"(?:%{URI:referrer}|-)\" %{QS:agent} %{NUMBER:request_time} %{NUMBER:upstream_response_time} %{NUMBER:gzip_ratio} (?:%{WORD:cache_hit}|-)%{GREEDYDATA}
 
 NGINX_ERROR_DATE %{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}
 NGINX_ERROR_LEVEL \[%{NOTSPACE:errorlevel}\]
 NGINX_ERROR_MESSAGE %{DATA:errormessage}(,%{SPACE}|$)
-NGINX_CLIENT (client: %{IPORHOST:clientip}(,%{SPACE}|$))?
-NGINX_SERVER (server: %{IPORHOST:server}(,%{SPACE}|$))?
-NGINX_REQUEST (request: \"(?:%{WORD:verb} %{URIPATHPARAM:request}(?: HTTP/%{NUMBER:httpversion})?|-)\"(,%{SPACE}|$))?
-NGINX_UPSTREAM (upstream: \"%{DATA:upstream}\"(,%{SPACE}|$))?
-NGINX_HOST (host: \"%{IPORHOST:nginx_error_host}\"(,%{SPACE}|$))?
+NGINX_CLIENT (client: %{IPORHOST:client_ip}(,%{SPACE}|$))?
+NGINX_SERVER (server: %{IPORHOST:vhost}(,%{SPACE}|$))?
+NGINX_REQUEST (request: \"(?:%{WORD:method} %{URIPATHPARAM:request}(?: HTTP/%{NUMBER:httpversion})?|-)\"(,%{SPACE}|$))?
+NGINX_UPSTREAM (upstream: \"%{DATA:upstream_request}\"(,%{SPACE}|$))?
+NGINX_HOST (host: \"%{IPORHOST:requested}\"(,%{SPACE}|$))?
 NGINX_REFERRER (referrer: \"%{IPORHOST:referrer}\"(,%{SPACE}|$))?
 
 # Debug string
-# (?<timestamp>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}) \[%{NOTSPACE:errorlevel}\] %{DATA:errormessage}(,%{SPACE}|$)(client: %{IPORHOST:clientip}(,%{SPACE}|$))?(server: %{IPORHOST:server}(,%{SPACE}|$))?(request: \"(?:%{WORD:verb} %{URIPATHPARAM:request}(?: HTTP/%{NUMBER:httpversion})?|-)\"(,%{SPACE}|$))?(upstream: \"%{DATA:upstream}\"(,%{SPACE}|$))?(\"%{IPORHOST:nginx_error_host}\"(,%{SPACE}|$))?(\"%{IPORHOST:referrer}\"(,%{SPACE}|$))?
-# NGINX_ERROR (?<timestamp>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}) \[%{NOTSPACE:errorlevel}\] %{DATA:errormessage}(,%{SPACE}|$)(client: %{IPORHOST:clientip}(,%{SPACE}|$))?(server: %{IPORHOST:server}(,%{SPACE}|$))?(request: \"(?:%{WORD:verb} %{URIPATHPARAM:request}(?: HTTP/%{NUMBER:httpversion})?|-)\"(,%{SPACE}|$))?(upstream: \"%{DATA:upstream}\"(,%{SPACE}|$))?(\"%{IPORHOST:nginx_error_host}\"(,%{SPACE}|$))?(\"%{IPORHOST:referrer}\"(,%{SPACE}|$))?
+# (?<timestamp>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}) \[%{NOTSPACE:errorlevel}\] %{DATA:errormessage}(,%{SPACE}|$)(client: %{IPORHOST:client_ip}(,%{SPACE}|$))?(server: %{IPORHOST:vhost}(,%{SPACE}|$))?(request: \"(?:%{WORD:method} %{URIPATHPARAM:request}(?: HTTP/%{NUMBER:httpversion})?|-)\"(,%{SPACE}|$))?(upstream: \"%{DATA:upstream_request}\"(,%{SPACE}|$))?(\"%{IPORHOST:requested}\"(,%{SPACE}|$))?(\"%{IPORHOST:referrer}\"(,%{SPACE}|$))?
+# NGINX_ERROR (?<timestamp>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}) \[%{NOTSPACE:errorlevel}\] %{DATA:errormessage}(,%{SPACE}|$)(client: %{IPORHOST:client_ip}(,%{SPACE}|$))?(server: %{IPORHOST:vhost}(,%{SPACE}|$))?(request: \"(?:%{WORD:method} %{URIPATHPARAM:request}(?: HTTP/%{NUMBER:httpversion})?|-)\"(,%{SPACE}|$))?(upstream: \"%{DATA:upstream_request}\"(,%{SPACE}|$))?(\"%{IPORHOST:requested}\"(,%{SPACE}|$))?(\"%{IPORHOST:referrer}\"(,%{SPACE}|$))?
 NGINX_ERROR %{NGINX_ERROR_DATE:timestamp} %{NGINX_ERROR_LEVEL} %{NGINX_ERROR_MESSAGE}%{NGINX_CLIENT}%{NGINX_SERVER}%{NGINX_REQUEST}%{NGINX_UPSTREAM}%{NGINX_HOST}%{NGINX_REFERRER}
 
 
 UT_NUMBER [0-9.-]+
-RT rt=%{NUMBER:rt}
-UT ut=\"%{DATA:ut}\"
+RT rt=%{NUMBER:response_time}
+UT ut=\"%{DATA:upstream_time}\"
 # UT ut=\"%{UT_NUMBER:ut}|%{UT_NUMBER:ut1}, %{UT_NUMBER:ut}|%{UT_NUMBER:ut2}, %{UT_NUMBER:ut1}, %{UT_NUMBER:ut}\"
-CS cs=(?:-|%{WORD:cs})
-US us=(?:-|%{NOTSPACE:us1}, %{NOTSPACE:us}|%{NOTSPACE:us})
+CS cs=(?:-|%{WORD:cache_state})
+US us=(?:-|%{NOTSPACE:upstream2}, %{NOTSPACE:upstream_request}|%{NOTSPACE:upstream_request})
 
 NGINX_ROYALL %{COMBINEDAPACHELOG} %{RT} %{UT} %{CS} %{US}
 
