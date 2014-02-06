@@ -1,62 +1,29 @@
 input {
 
-# --- Standard syslogs in JSON format --- #
-
     file {
         path => "/var/log/remote/ikura3/**/*.syslog.json.log"
-        exclude => [ "apache*" , "nginx*" , "audit*" , "mysql*" ]
+        exclude => [ "*.gz" ]
         start_position => "beginning"
         codec => "json"
         tags => [ "syslog" ]
         type => "syslog"
     }
 
-# --- Logs that need grokking --- #
+    file {
+        path => "/var/log/remote/**/nginx/nginx-access*.raw.log"
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "nginx" , "access" ]
+        type => "nginx-access"
+    }
 
-    # file {
-    #     type => "apache-access"
-    #     path => "/var/log/remote/*/apache/apache-access*log"
-    #     exclude => [ "*.gz" ]
-    #     start_position => "beginning"
-    #     codec => "json_event"
-    #     tags => [ "apache" , "access" ]
-    # }
-
-    # file {
-    #     type => "apache-error"
-    #     path => "/var/log/remote/*/apache/apache-error*log"
-    #     exclude => [ "*.gz" ]
-    #     start_position => "beginning"
-    #     codec => "json_event"
-    #     tags => [ "apache" , "error" ]
-    # }
-
-    # file {
-    #     type => "audit"
-    #     path => "/var/log/remote/*/audit/audit-log*log"
-    #     exclude => [ "*.gz" ]
-    #     start_position => "beginning"
-    #     codec => "plain"
-    #     tags => [ "audit" ]
-    # }
-
-    # file {
-    #     type => "nginx-access"
-    #     path => "/var/log/remote/*/nginx/nginx-access.log.20130828*"
-    #     exclude => [ "*.gz" ]
-    #     start_position => "beginning"
-    #     codec => "plain"
-    #     tags => [ "nginx", "access" ]
-    # }
-
-    # file {
-    #     type => "nginx-error"
-    #     path => "/var/log/remote/*/nginx/nginx-error.log.20130828*"
-    #     exclude => [ "*.gz" ]
-    #     start_position => "beginning"
-    #     codec => "plain"
-    #     tags => [ "nginx", "error" ]
-    # }
+    file {
+        path => "/var/log/remote/**/nginx/nginx-error*.raw.log"
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "nginx" , "error" ]
+        type => "nginx-error"
+    }
 
 }
 
