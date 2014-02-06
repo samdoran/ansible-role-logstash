@@ -33,7 +33,7 @@ filter {
         mutate { add_tag => [ "authfail" ] }
     }
 
-    ## Capture actual source host from file path
+    # Capture actual source host from file path
     if ([type] == "syslog") or ("nginx" in [tags]) {
         grok { match => [ "path" , "/var/log/remote/%{IPORHOST:actual_source_host}/" ] }
 
@@ -65,7 +65,7 @@ filter {
     #     add_tag => "grokked"
     # }
 
-    ## Nginx logs
+    # Nginx logs
     if [type] == "nginx-access" {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
@@ -83,7 +83,7 @@ filter {
     }
 
 
-    ## Syslogs
+    # Syslogs
     if "sudo" in [tags] {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
@@ -109,7 +109,7 @@ filter {
         }
     }
 
-    ## Aerohive
+    # --- Aerohive --- #
 
     # Change IP in host field to friendly hostname
     if "aerohive" in [tags] {
@@ -132,6 +132,7 @@ filter {
 
 
     # --- Date correction --- #
+
     if [type] == "audit" {
         date {
             match => [ "audit_epoch" , "UNIX_MS" ]
