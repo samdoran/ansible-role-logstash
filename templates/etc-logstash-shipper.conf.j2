@@ -1,7 +1,8 @@
 input {
 
     file {
-        path => "/var/log/remote/ikura3/**/*.syslog.json.log"
+        path => "/var/log/remote/**/*.syslog.json.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_syslog"
         exclude => [ "*.gz" ]
         start_position => "beginning"
         codec => "json"
@@ -11,6 +12,7 @@ input {
 
     file {
         path => "/var/log/remote/**/nginx/nginx-access*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-access"
         start_position => "beginning"
         codec => "plain"
         tags => [ "nginx" , "access" ]
@@ -19,6 +21,7 @@ input {
 
     file {
         path => "/var/log/remote/**/nginx/nginx-error*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-error"
         start_position => "beginning"
         codec => "plain"
         tags => [ "nginx" , "error" ]
