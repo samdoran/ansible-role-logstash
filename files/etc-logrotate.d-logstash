@@ -1,7 +1,0 @@
-/var/log/logstash.log {
-    compress
-    missingok
-    notifempty
-    daily
-    create 0640 logstash logreader
-}
