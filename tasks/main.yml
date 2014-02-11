@@ -4,6 +4,7 @@
   tags:
     - logstash
     - config
+    - parserconf
   notify: restart logstash
 
 - name: Copy logstash patterns
@@ -11,5 +12,6 @@
   tags:
     - logstash
     - config
+    - parserconf
     - patterns
   notify: restart logstash
