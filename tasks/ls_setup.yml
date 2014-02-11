@@ -1,10 +1,7 @@
 ---
-- name: Copy logstash upstart config
-  template: src=etc-init-logstash.conf.j2 dest=/etc/init/logstash.conf owner=root group=root mode=0644
-  tags:
-    - logstash
-    - config
-  notify: restart logstash
+- name: Install logstash
+  yum: name=logstash state=present
+  tags: logstash
 
 - name: Enable Logstash
   service: name=logstash state=started
@@ -12,27 +9,4 @@
 
 - name: Create logreader group
   group: name=logreader gid=507
-  tags: logstash
-
-- name: Create logstash user
-  user: name=logstash group=logreader home=/var/logstash system=yes uid=498
-  tags: logstash
-
-- name: Create /opt/logstash
-  file: path=/opt/logstash owner=root group=logreader mode=0750 state=directory recurse=yes
-  tags: logstash
-
-- name: Copy logstash flat jar
-  copy: src=logstash-{{ ls_ver }}-flatjar.jar dest=/opt/logstash/logstash.jar owner=root group=root mode=0644
-  tags:
-    - logstash
-    - flatjar
-  notify: restart logstash
-
-- name: Create logstash.log file
-  file: path=/var/logstash.log owner=logstash group=logreader mode=0640
-  tags: logstash
-
-- name: Copy logstash.log rotation
-  copy: src=etc-logrotate.d-logstash dest=/etc/logrotate.d/logstash owner=root group=root mode=0644
   tags: logstash
