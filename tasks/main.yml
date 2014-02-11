@@ -8,4 +8,5 @@
   tags:
     - logstash
     - config
+    - shipperconf
   notify: restart logstash
