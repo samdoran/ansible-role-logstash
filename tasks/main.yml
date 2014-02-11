@@ -1,17 +1,7 @@
 ---
-- name: Raise file limits for logstash user
-  copy: src=etc-security-limits.d-80-logstash.conf
-        dest=/etc/security/limits.d/80-logstash.conf
-        owner=root
-        group=root
-        mode=0644
-  tags:
-    - logstash
-    - config
-
 - name: Copy shipper config
   template: src=etc-logstash-shipper.conf.j2
-            dest=/etc/logstash/shipper.conf
+            dest=/etc/logstash/conf.d/shipper.conf
             owner=root
             group=root
             mode=0644
