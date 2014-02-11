@@ -1,7 +1,7 @@
 input {
 
     file {
-        path => "/var/log/remote/**/*.syslog.json.log"
+        path => "/var/log/remote/ikura*/*.syslog.json.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_syslog"
         exclude => [ "*.gz" ]
         start_position => "beginning"
