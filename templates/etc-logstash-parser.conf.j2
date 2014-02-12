@@ -130,6 +130,79 @@ filter {
         mutate { remove_field => [ "last_octet" ] }
     }
 
+    # Extract IP, station, hostname, BSSID, etc.
+    if ("aerohive" in [tags]) and ("ah_rt_sta_update_hostname" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_rt_sta_update_hostname: %{AEROHIVEMAC:station}\(hostname=%{DATA:hostname}\)" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ("ah_rt_sta_update_ip" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_rt_sta_update_ip: %{AEROHIVEMAC:station}\(ip=%{IP:client_ip}\)" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ("ah_auth: ah_rt_sta_add:" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: ah_rt_sta_add: %{AEROHIVEMAC:station}\(ip=%{IP:client_ip}\), username %{GREEDYDATA:user} on %{GREEDYDATA:interface}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ("detect station" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , " ah_auth: detect station\(%{AEROHIVEMAC:station}\) os\(%{DATA:os}\) via DHCP fingerprint" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ([message] =~ /ah_auth: Station [A-Fa-f0-9]{4}/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: Station %{AEROHIVEMAC:station} ip %{IP:client_ip} username %{DATA:user} hostname %{DATA:hostname} OS %{GREEDYDATA:os}" ]
+            add_tag => "grokked"
+        }
+    }
+
+
+    if ("aerohive" in [tags]) and ([message] =~ /ah_auth: sta [A-Fa-f0-9]{4}/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: sta %{AEROHIVEMAC:station} is disassociated from %{AEROHIVEMAC:bssid}\(%{DATA:interface}\) in driver" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ([message] =~ /ah_auth: Notify driver to disassoc [A-Fa-f0-9]{4}/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: Notify driver to disassoc %{AEROHIVEMAC:station} from %{GREEDYDATA:interface}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ([message] =~ /receive driver notification/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "receive driver notification\[%{DATA}, %{WORD:event}\] for Sta\[%{AEROHIVEMAC:station}\] at Hapd\[%{AEROHIVEMAC:bssid}, %{GREEDYDATA:interface}\]" ]
+            add_tag => "grokked"
+        }
+    }
+
+     if ("aerohive" in [tags]) and ("pmksa_cache_auth_add" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: pmksa_cache_auth_add: own_addr %{AEROHIVEMAC:bssid}, sta %{AEROHIVEMAC:station}, %{INT}, username %{GREEDYDATA:user}" ]
+            add_tag => "grokked"
+        }
+    }
 
     # --- Date correction --- #
 
