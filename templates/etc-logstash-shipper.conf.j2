@@ -1,8 +1,18 @@
 input {
 
     file {
-        path => "/var/log/remote/ikura*/*.syslog.json.log"
+        path => "/var/log/remote/ikura*/**/*.syslog.json.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_syslog"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "json"
+        tags => [ "syslog" ]
+        type => "syslog"
+    }
+
+    file {
+        path => "/var/log/remote/192.168.40.1[567][0-9]/**/*.syslog.json.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_aerohive"
         exclude => [ "*.gz" ]
         start_position => "beginning"
         codec => "json"
