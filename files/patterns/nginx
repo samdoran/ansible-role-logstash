@@ -24,6 +24,7 @@ CS cs=(?:-|%{WORD:cache_state})
 US us=(?:-|%{NOTSPACE:upstream2}, %{NOTSPACE:upstream_request}|%{NOTSPACE:upstream_request})
 
 NGINX_ROYALL %{COMBINEDAPACHELOG} %{RT} %{UT} %{CS} %{US}
+NGINX_AUTODISCOVER %{IPORHOST:clientip} %{USER:ident} %{DATA:auth} \[%{HTTPDATE:timestamp}\] "(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{RT} %{UT} %{CS} %{US}
 
 # Debug string
 # %{COMBINEDAPACHELOG} rt=%{NUMBER:rt} ut=\"(?<ut)|(?<ut1), (?<ut)|(?<ut2), (?<ut1), (?<ut)\"
