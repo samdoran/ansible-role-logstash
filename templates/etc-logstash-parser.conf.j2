@@ -73,12 +73,11 @@ filter {
                 match => [ "message" , "%{NGINX_AUTODISCOVER}" ]
                 add_tag => [ "grokked" ]
             }
-            else {
-                grok {
-                    patterns_dir => [ "/opt/logstash/patterns" ]
-                    match => [ "message" , "%{NGINX_ROYALL}" ]
-                    add_tag => [ "grokked" ]
-                }
+        } else {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "%{NGINX_ROYALL}" ]
+                add_tag => [ "grokked" ]
             }
         }
     }
@@ -128,9 +127,7 @@ filter {
             mutate {
                 replace => [ "host" , "AP330-%{last_octet}" ]
             }
-        }
-
-        else {
+        } else {
             mutate {
                 replace => [ "host" , "AP121-%{last_octet}" ]
             }
