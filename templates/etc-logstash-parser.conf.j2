@@ -131,7 +131,7 @@ filter {
     }
 
     # Extract IP, station, hostname, BSSID, etc.
-    if ("aerohive" in [tags]) and ("ah_rt_sta_update_hostname" in [message]) {
+    if ("aerohive" in [tags]) and ("ah_rt_sta_update_hostname:" in [message]) {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
             match => [ "message" , "ah_rt_sta_update_hostname: %{AEROHIVEMAC:station}\(hostname=%{DATA:hostname}\)" ]
@@ -139,10 +139,18 @@ filter {
         }
     }
 
-    if ("aerohive" in [tags]) and ("ah_rt_sta_update_ip" in [message]) {
+    if ("aerohive" in [tags]) and ("ah_rt_sta_update_ip:" in [message]) {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
             match => [ "message" , "ah_rt_sta_update_ip: %{AEROHIVEMAC:station}\(ip=%{IP:client_ip}\)" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ("ah_rt_sta_update_ip_hostname:" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_rt_sta_update_ip_hostname: %{AEROHIVEMAC:station} ip=%{IP:client_ip}, hostname=%{GREEDYDATA:hostname}" ]
             add_tag => "grokked"
         }
     }
@@ -163,7 +171,15 @@ filter {
         }
     }
 
-    if ("aerohive" in [tags]) and ([message] =~ /ah_auth: Station [A-Fa-f0-9]{4}/) {
+    if ("aerohive" in [tags]) and ([message] =~ /is (de-)?authenticated (to|from)/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: Station %{AEROHIVEMAC:station} is (de-)?authenticated (to|from) %{AEROHIVEMAC:bssid} thru SSID %{GREEDYDATA:ssid}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ([message] =~ /ah_auth: Station ([A-Fa-f0-9]{4}:){2}[A-Fa-f0-9]{4} ip/) {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
             match => [ "message" , "ah_auth: Station %{AEROHIVEMAC:station} ip %{IP:client_ip} username %{DATA:user} hostname %{DATA:hostname} OS %{GREEDYDATA:os}" ]
@@ -227,7 +243,7 @@ filter {
 
 output {
 
-    # stdout { debug => true }
+    stdout { debug => true }
 
     elasticsearch {
         bind_host => "{{ ansible_default_ipv4.address }}"
