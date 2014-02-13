@@ -225,7 +225,7 @@ filter {
         }
     }
 
-    if ("aerohive" in [tags]) and ("L2 DoS" in [message]) and ([program == "kernel"]) {
+    if ("aerohive" in [tags]) and ("L2 DoS" in [message]) and ([program] == "kernel") {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
             match => [ "message" , "L2 DoS: interface %{NOTSPACE:interface}\(%{DATA:ssid}\) station %{AEROHIVEMAC:station}:" ]
