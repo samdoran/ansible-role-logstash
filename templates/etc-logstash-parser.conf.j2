@@ -67,7 +67,7 @@ filter {
 
     # Nginx logs
     if [type] == "nginx-access" {
-        if "POST /autodiscover/" in [message] {
+        if [message] =~ /POST \/autodiscover\/i {
             grok {
                 patterns_dir => [ "/opt/logstash/patterns" ]
                 match => [ "message" , "%{NGINX_AUTODISCOVER}" ]
