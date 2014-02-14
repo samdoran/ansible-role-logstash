@@ -263,6 +263,6 @@ output {
         cluster => "{{ ls_cluster_name }}"
         node_name => "{{ ansible_hostname }}"
         port => "9500-9600"
-        flush_size => 100
+        flush_size => 500
     }
 }
