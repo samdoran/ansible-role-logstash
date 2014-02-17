@@ -5,7 +5,7 @@ input {
         data_type => "list"
         key => "logstash"
         codec => "json"
-        threads => 10
+        threads => 1
     }
 
     redis {
@@ -14,7 +14,7 @@ input {
         data_type => "list"
         key => "logstash"
         codec => "json"
-        threads => 10
+        threads => 1
     }
 }
 
@@ -225,7 +225,7 @@ filter {
         }
     }
 
-    if ("aerohive" in [tags]) and ("L2 DoS" in [message]) and ([program] == "kernel") {
+    if ("aerohive" in [tags]) and ("L2 DoS" in [message]) {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
             match => [ "message" , "L2 DoS: interface %{NOTSPACE:interface}\(%{DATA:ssid}\) station %{AEROHIVEMAC:station}:" ]
@@ -256,7 +256,7 @@ filter {
 
 output {
 
-    stdout { debug => true }
+    # stdout { debug => true }
 
     elasticsearch {
         bind_host => "{{ ansible_default_ipv4.address }}"
