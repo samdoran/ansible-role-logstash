@@ -80,12 +80,6 @@ filter {
                 add_tag => [ "grokked" ]
             }
         }
-
-        if {
-            grok {
-                match => [ "" ]
-            }
-        }
     }
 
     if [type] == "nginx-error" {
