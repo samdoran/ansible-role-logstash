@@ -38,6 +38,15 @@ input {
         type => "nginx-error"
     }
 
+    file {
+        path => "/var/log/remote/ika/W3SVC*/*.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_ika-iis"
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "iis" ]
+        type => "iis"
+    }
+
 }
 
 filter {
