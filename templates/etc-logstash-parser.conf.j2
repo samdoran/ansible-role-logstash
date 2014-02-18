@@ -242,7 +242,7 @@ filter {
         }
 
         grok {
-            match => ["message", "%{DATESTAMP:eventtime} %{WORD:site} %{IPORHOST:upstream_request} %{WORD:verb} %{URIPATH:request} (?:%{DATA:param}|-) %{NUMBER:port} (?:%{USER:user}|(%{WORD:domain}\\%{USER:username})|-) %{IPORHOST:clientip}(?: %{DATA:agent}|-) %{NUMBER:response} %{NUMBER:status} %{NUMBER:win32Status}"]
+            match => ["message", "%{DATESTAMP:eventtime} %{WORD:site} %{IPORHOST:upstream_request} %{WORD:verb} %{DATA:request} (?:%{DATA:param}|-) %{NUMBER:port} (?:%{USER:user}|(%{WORD:domain}\\%{USER:username})|-) %{IPORHOST:clientip}(?: %{DATA:agent}|-) %{NUMBER:response} %{NUMBER:status} %{NUMBER:win32Status}"]
             add_tag => [ "grokked" ]
         }
 
