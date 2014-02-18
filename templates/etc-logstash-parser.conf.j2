@@ -34,7 +34,7 @@ filter {
     }
 
     # Capture actual source host from file path
-    if ([type] == "syslog") or ("nginx" in [tags]) {
+    if ([type] == "syslog") or ("nginx" in [tags]) or ("iis" in [tags]) {
         grok { match => [ "path" , "/var/log/remote/%{IPORHOST:actual_source_host}/" ] }
 
         if [host] != [actual_source_host] {
@@ -78,6 +78,12 @@ filter {
                 patterns_dir => [ "/opt/logstash/patterns" ]
                 match => [ "message" , "%{NGINX_ROYALL}" ]
                 add_tag => [ "grokked" ]
+            }
+        }
+
+        if {
+            grok {
+                match => [ "" ]
             }
         }
     }
