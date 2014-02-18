@@ -233,6 +233,30 @@ filter {
         }
     }
 
+    # --- IIS --- #
+
+    if "iis" in [tags] {
+        # Drop comment lines from IIS
+        if [message] =~ /^#/ {
+            drop {}
+        }
+
+        grok {
+            match => ["message", "%{DATESTAMP:eventtime} %{WORD:site} %{IPORHOST:upstream_request} %{WORD:verb} %{URIPATH:request} (?:%{DATA:param}|-) %{NUMBER:port} (?:%{USER:user}|(%{WORD:domain}\\%{USER:username})|-) %{IPORHOST:clientip}(?: %{DATA:agent}|-) %{NUMBER:response} %{NUMBER:status} %{NUMBER:win32Status}"]
+            add_tag => [ "grokked" ]
+        }
+
+        # Extract first folder after domain
+        if [request] =~ /\/.*\// {
+            grok {
+                match => ["request", "/%{DATA:folder}/"]
+            }
+        }
+
+    }
+
+
+
     # --- Date correction --- #
 
     if [type] == "audit" {
@@ -250,6 +274,14 @@ filter {
 
         # Remove timestamp fields because it confuses ES
         mutate { remove_field => [ "timestamp" ] }
+    }
+
+    if "iis" in [tags] {
+        date {
+            match => [ "eventtime" , "yy-MM-dd HH:mm:ss" ]
+            add_tag => "dated"
+            remove_field => [ "eventtime" ]
+        }
     }
 }
 
