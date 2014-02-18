@@ -21,7 +21,7 @@ RT rt=%{NUMBER:response_time}
 UT ut=\"%{DATA:upstream_time}\"
 # UT ut=\"%{UT_NUMBER:ut}|%{UT_NUMBER:ut1}, %{UT_NUMBER:ut}|%{UT_NUMBER:ut2}, %{UT_NUMBER:ut1}, %{UT_NUMBER:ut}\"
 CS cs=(?:-|%{WORD:cache_state})
-US us=(?:-|%{NOTSPACE:upstream2}, %{NOTSPACE:upstream_request}|%{NOTSPACE:upstream_request})
+US us=(?:-|%{IP:upstream2}:%{INT:port}, %{IP:upstream_request}:%{INT:port}|%{IP:upstream_request}:%{INT:port})
 
 NGINX_ROYALL %{COMBINEDAPACHELOG} %{RT} %{UT} %{CS} %{US}
 NGINX_AUTODISCOVER %{IPORHOST:clientip} %{USER:ident} %{DATA:auth} \[%{HTTPDATE:timestamp}\] "(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{RT} %{UT} %{CS} %{US}
