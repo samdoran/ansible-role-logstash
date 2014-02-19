@@ -148,7 +148,7 @@ filter {
     if ("aerohive" in [tags]) and ("ah_rt_sta_update_ip:" in [message]) {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "ah_rt_sta_update_ip: %{AEROHIVEMAC:station}\(ip=%{IP:client_ip}\)" ]
+            match => [ "message" , "ah_rt_sta_update_ip: %{AEROHIVEMAC:station}\(ip=%{IP:clientip}\)" ]
             add_tag => "grokked"
         }
     }
@@ -156,7 +156,7 @@ filter {
     if ("aerohive" in [tags]) and ("ah_rt_sta_update_ip_hostname:" in [message]) {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "ah_rt_sta_update_ip_hostname: %{AEROHIVEMAC:station} ip=%{IP:client_ip}, hostname=%{GREEDYDATA:hostname}" ]
+            match => [ "message" , "ah_rt_sta_update_ip_hostname: %{AEROHIVEMAC:station} ip=%{IP:clientip}, hostname=%{GREEDYDATA:hostname}" ]
             add_tag => "grokked"
         }
     }
@@ -164,7 +164,7 @@ filter {
     if ("aerohive" in [tags]) and ("ah_auth: ah_rt_sta_add:" in [message]) {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "ah_auth: ah_rt_sta_add: %{AEROHIVEMAC:station}\(ip=%{IP:client_ip}\), username %{GREEDYDATA:user} on %{GREEDYDATA:interface}" ]
+            match => [ "message" , "ah_auth: ah_rt_sta_add: %{AEROHIVEMAC:station}\(ip=%{IP:clientip}\), username %{GREEDYDATA:user} on %{GREEDYDATA:interface}" ]
             add_tag => "grokked"
         }
     }
@@ -188,7 +188,7 @@ filter {
     if ("aerohive" in [tags]) and ([message] =~ /ah_auth: Station ([A-Fa-f0-9]{4}:){2}[A-Fa-f0-9]{4} ip/) {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "ah_auth: Station %{AEROHIVEMAC:station} ip %{IP:client_ip} username %{DATA:user} hostname %{DATA:hostname} OS %{GREEDYDATA:os}" ]
+            match => [ "message" , "ah_auth: Station %{AEROHIVEMAC:station} ip %{IP:clientip} username %{DATA:user} hostname %{DATA:hostname} OS %{GREEDYDATA:os}" ]
             add_tag => "grokked"
         }
     }
