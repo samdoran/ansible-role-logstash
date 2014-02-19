@@ -90,6 +90,13 @@ filter {
         }
     }
 
+    # Extract first folder after domain
+    if ("nginx" in [tags]) and ([request] =~ /\/.*\//) {
+        grok {
+            match => ["request", "/%{DATA:folder}/"]
+        }
+    }
+
 
     # Syslogs
     if "sudo" in [tags] {
