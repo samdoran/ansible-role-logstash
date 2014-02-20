@@ -10,3 +10,9 @@
     - config
     - shipperconf
   notify: restart logstash
+
+
+- name: Configure Java Opts for logstash
+  lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?LS_JAVA_OPTS=' line='LS_JAVA_OPTS="-Xms3584m -Xmx4096m -Djava.io.tmpdir=$LS_HOME/tmp"' state=present
+  tags: [ 'logstash' , 'config' , 'shipperconf' ]
+  notify: restart logstash
