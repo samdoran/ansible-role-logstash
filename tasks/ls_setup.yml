@@ -18,3 +18,8 @@
 - name: Raise file limit for logstash
   lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?OPEN_FILES=' line='OPEN_FILES=65536' state=present
   tags: [ 'logstash' , 'config' ]
+
+- name: Configure Java Opts for logstash
+  lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?LS_JAVA_OPTS=' line='LS_JAVA_OPTS="-Xms1024m -Xmx15360m -Djava.io.tmpdir=$LS_HOME/tmp"' state=present
+  tags: [ 'logstash' , 'config' ]
+  notify: restart logstash
