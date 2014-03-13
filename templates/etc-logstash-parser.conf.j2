@@ -67,18 +67,10 @@ filter {
 
     # Nginx logs
     if [type] == "nginx-access" {
-        if [message] =~ /POST \/(?i)autodiscover\// {
-            grok {
-                patterns_dir => [ "/opt/logstash/patterns" ]
-                match => [ "message" , "%{NGINX_AUTODISCOVER}" ]
-                add_tag => [ "grokked" ]
-            }
-        } else {
-            grok {
-                patterns_dir => [ "/opt/logstash/patterns" ]
-                match => [ "message" , "%{NGINX_ROYALL}" ]
-                add_tag => [ "grokked" ]
-            }
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "%{NGINX_ROYALL}" ]
+            add_tag => [ "grokked" ]
         }
     }
 

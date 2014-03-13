@@ -21,10 +21,8 @@ RT rt=%{NUMBER:response_time}
 UT ut=\"%{DATA:upstream_time}\"
 # UT ut=\"%{UT_NUMBER:ut}|%{UT_NUMBER:ut1}, %{UT_NUMBER:ut}|%{UT_NUMBER:ut2}, %{UT_NUMBER:ut1}, %{UT_NUMBER:ut}\"
 CS cs=(?:-|%{WORD:cache_state})
-US us=(?:-|%{IP:upstream2}:%{INT:port}, %{IP:upstream_request}:%{INT:port}|%{IP:upstream_request}:%{INT:port})
+US us=(?:-|(%{IP:upstream}:%{INT:upstream_port}, us=%{IP:upstream_2}:%{INT:upstream_port_2})|(%{IP:upstream}:%{INT:upstream_port}))
+COMBINEDAPACHELOG_ROYALL %{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "(?:%{WORD:method} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer}(;)? %{QS:agent}
 
-NGINX_ROYALL %{COMBINEDAPACHELOG} %{RT} %{UT} %{CS} %{US}
-NGINX_AUTODISCOVER %{IPORHOST:clientip} %{USER:ident} %{DATA:auth} \[%{HTTPDATE:timestamp}\] "(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{RT} %{UT} %{CS} %{US}
-
-# Debug string
-# %{COMBINEDAPACHELOG} rt=%{NUMBER:rt} ut=\"(?<ut)|(?<ut1), (?<ut)|(?<ut2), (?<ut1), (?<ut)\"
+COMBINEDAPACHELOG_ROYALL %{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "(?:%{WORD:method} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer}(;)? %{QS:agent}
+NGINX_ROYALL %{COMBINEDAPACHELOG_ROYALL} (%{RT} %{UT} %{CS} %{US})?
