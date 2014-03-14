@@ -47,6 +47,15 @@ input {
         type => "iis"
     }
 
+    file {
+        path => "/var/log/remote/**/tac_plus/*syslog.json.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_tac_plus"
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "tacacs" ]
+        type => "syslog"
+    }
+
 }
 
 filter {
