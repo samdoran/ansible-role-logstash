@@ -29,7 +29,7 @@ filter {
     }
 
     # Tag login failures
-    if [type] == "syslog" and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)/ {
+    if [type] == "syslog" and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)|(?i:login failure)/ {
         mutate { add_tag => [ "authfail" ] }
     }
 
@@ -113,6 +113,31 @@ filter {
             patterns_dir => [ "/opt/logstash/patterns" ]
             match => [ "message" , "(rhost=%{IPORHOST:host}%{SPACE}user=%{USER:user})|(?i:invalid user %{USER:user})|(Failed password for (invalid user %{USER:user}|%{USER:user}) from %{IPORHOST:authfail_host})|(Too many authentication failures for %{USER:user})" ]
             add_tag => "grokked"
+        }
+    }
+
+    #TACACS
+    if "tacacs" in [tags] {
+        if "authfail" in [tags] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "%{TACPLUS_LOGIN_FAIL}" ]
+                add_tag => "grokked"
+            }
+        }
+
+        # Drop noisy connect messages
+        if "connect from" in [message] {
+            drop {}
+        }
+
+        # Main command logging
+        if [message] =~ /tty\d/ {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "%{TACPLUS}" ]
+                add_tag => "grokked"
+            }
         }
     }
 
