@@ -6,7 +6,7 @@ NGINX_ERROR_MESSAGE %{DATA:errormessage}(,%{SPACE}|$)
 NGINX_CLIENT (client: %{IPORHOST:clientip}(,%{SPACE}|$))?
 NGINX_SERVER (server: %{IPORHOST:vhost}(,%{SPACE}|$))?
 NGINX_REQUEST (request: \"(?:%{WORD:method} %{URIPATHPARAM:request}(?: HTTP/%{NUMBER:httpversion})?|-)\"(,%{SPACE}|$))?
-NGINX_UPSTREAM (upstream: \"%{DATA:upstream_request}\"(,%{SPACE}|$))?
+NGINX_UPSTREAM (upstream: \"%{WORD}://%{IP:upstream}:%{INT:upstream_port}%{DATA:upstream_request}\"((;)?,%{SPACE}|$))?
 NGINX_HOST (host: \"%{IPORHOST:requested}\"(,%{SPACE}|$))?
 NGINX_REFERRER (referrer: \"%{IPORHOST:referrer}\"(,%{SPACE}|$))?
 
