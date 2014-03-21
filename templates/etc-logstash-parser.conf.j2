@@ -79,6 +79,10 @@ filter {
             match => [ "message" , "%{NGINX_ROYALL}" ]
             add_tag => [ "grokked" ]
         }
+
+        useragent { source => "agent" }
+
+        geoip { source => clientip }
     }
 
     if [type] == "nginx-error" {
@@ -87,6 +91,8 @@ filter {
             match => [ "message" , "%{NGINX_ERROR}" ]
             add_tag => [ "grokked" ]
         }
+
+        geoip { source => clientip }
     }
 
     # Extract first folder after domain
