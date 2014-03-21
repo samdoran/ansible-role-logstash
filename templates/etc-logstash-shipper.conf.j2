@@ -39,8 +39,8 @@ input {
     }
 
     file {
-        path => "/var/log/remote/ika/W3SVC*/*.log"
-        sincedb_path => "/opt/logstash/sincedb/sincedb_ika-iis"
+        path => "/var/log/remote/**/W3SVC*/*.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
         start_position => "beginning"
         codec => "plain"
         tags => [ "iis" ]
@@ -48,10 +48,10 @@ input {
     }
 
     file {
-        path => "/var/log/remote/**/tac_plus/*syslog.json.log"
+        path => "/var/log/remote/**/tac_plus/*.syslog.json.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_tac_plus"
         start_position => "beginning"
-        codec => "plain"
+        codec => "json"
         tags => [ "tacacs" ]
         type => "syslog"
     }
