@@ -82,7 +82,7 @@ filter {
 
         useragent { source => "agent" }
 
-        geoip { source => clientip }
+        geoip { source => "clientip" }
     }
 
     if [type] == "nginx-error" {
@@ -92,7 +92,7 @@ filter {
             add_tag => [ "grokked" ]
         }
 
-        geoip { source => clientip }
+        geoip { source => "clientip" }
     }
 
     # Extract first folder after domain
@@ -306,6 +306,7 @@ filter {
             remove_field => [ "eventtime" ]
         }
     }
+}
 
 output {
 
