@@ -1,25 +1,29 @@
 ---
 - name: Install logstash
-  yum: name=logstash state=present
+  yum: name=logstash state=latest
   tags: logstash
 
 - name: Enable Logstash
-  service: name=logstash state=started
+  service: name=logstash enabled=yes state=started
+  tags: logstash
+
+- name: Set ownership on /var/log/logstash
+  file: path=/var/log/logstash
+        owner=logstash
+        group=logstash
+        recurse=yes
   tags: logstash
 
 - name: Create logreader group
   group: name=logreader gid=507
   tags: logstash
 
-- name: Enable logstash in sysconfig
-  lineinfile: dest=/etc/sysconfig/logstash regexp='^START=' line='START=true' state=present
-  tags: [ 'logstash' , 'config' ]
+- name: Add logstash to logreader group
+  user: name=logstash
+        append=yes
+        groups=logreader
+  tags: logstash
 
 - name: Raise file limit for logstash
-  lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?OPEN_FILES=' line='OPEN_FILES=65536' state=present
+  lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?LS_OPEN_FILES=' line='LS_OPEN_FILES=65536' state=present
   tags: [ 'logstash' , 'config' ]
-
-- name: Configure Java Opts for logstash
-  lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?LS_JAVA_OPTS=' line='LS_JAVA_OPTS="-Xms1024m -Xmx15360m -Djava.io.tmpdir=$LS_HOME/tmp"' state=present
-  tags: [ 'logstash' , 'config' ]
-  notify: restart logstash

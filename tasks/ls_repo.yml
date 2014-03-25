@@ -1,13 +1,11 @@
 ---
 - name: Copy logstash repo
-  copy: src=etc-yum.repos.d-logstash-1.3.repo
-        dest=/etc/yum.repos.d/logstash-1.3.repo
+  copy: src=logstash-1.4.repo
+        dest=/etc/yum.repos.d/logstash-1.4.repo
         owner=root
         group=root
         mode=0644
-  tags:
-    - logstash
-    - yum
+  tags: [ "logstash" , "yum" ]
 
 - name: Copy logstash GPG key
   copy: src=GPG-KEY-elasticsearch
@@ -15,7 +13,5 @@
         owner=root
         group=root
         mode=0644
-  tags:
-    - logstash
-    - yum
+  tags: [ "logstash" , "yum" ]
   notify: install elasticsearch gpg key
