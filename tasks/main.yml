@@ -5,14 +5,10 @@
             owner=root
             group=root
             mode=0644
-  tags:
-    - logstash
-    - config
-    - shipperconf
+  tags: [ "logstash" , "config" , "shipperconf" ]
   notify: restart logstash
 
-
-- name: Configure Java Opts for logstash
-  lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?LS_JAVA_OPTS=' line='LS_JAVA_OPTS="-Xms3584m -Xmx4096m -Djava.io.tmpdir=$LS_HOME/tmp"' state=present
-  tags: [ 'logstash' , 'config' , 'shipperconf' ]
+- name: Set heap size for logstash
+  lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?LS_HEAP_SIZE=' line='LS_HEAP_SIZE="4096m"' state=present
+  tags: [ "logstash" , "config" , "parserconf" ]
   notify: restart logstash
