@@ -82,7 +82,10 @@ filter {
 
         useragent { source => "agent" }
 
-        geoip { source => "clientip" }
+        geoip {
+            source => "clientip"
+            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+        }
     }
 
     if [type] == "nginx-error" {
@@ -92,7 +95,10 @@ filter {
             add_tag => [ "grokked" ]
         }
 
-        geoip { source => "clientip" }
+        geoip {
+            source => "clientip"
+            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+        }
     }
 
     # Extract first folder after domain
@@ -314,7 +320,7 @@ output {
 
     elasticsearch {
         bind_host => "{{ ansible_default_ipv4.address }}"
-        cluster => "{{ ls_cluster_name }}"
+        cluster => "{{ es_cluster_name }}"
         node_name => "{{ ansible_hostname }}"
         port => "9500-9600"
         flush_size => 500
