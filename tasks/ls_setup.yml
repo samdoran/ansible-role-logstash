@@ -15,7 +15,7 @@
   tags: logstash
 
 - name: Create logreader group
-  group: name=logreader gid=507
+  group: name=logreader gid=520
   tags: logstash
 
 - name: Add logstash to logreader group
