@@ -294,9 +294,31 @@ filter {
             drop {}
         }
 
-        grok {
-            match => ["message", "%{DATESTAMP:eventtime} %{WORD:site} %{IPORHOST:upstream_request} %{WORD:verb} %{DATA:request} (?:%{DATA:param}|-) %{NUMBER:port} (?:%{USER:user}|(%{WORD:domain}\\%{USER:username})|-) %{IPORHOST:clientip}(?: %{DATA:agent}|-) %{NUMBER:response} %{NUMBER:status} %{NUMBER:win32Status}"]
-            add_tag => [ "grokked" ]
+        if "iis5" in [tags] {
+            grok {
+                match => ["message", "%{DATESTAMP:eventtime} %{IPORHOST:clientip} (-|%{USER:user}|(%{WORD:domain}[\\/]?%{USER:user})|(%{USER:user}@%{NOTSPACE:domain})) %{IPORHOST:upstream} %{NUMBER:port} %{NOTSPACE:verb} %{DATA:request} (?:%{DATA:param}|-)(?: %{DATA:agent}|-)"]
+                add_tag => [ "grokked" ]
+            }
+        }
+
+        if "iis6" in [tags] {
+            grok {
+                match => ["message", "%{DATESTAMP:eventtime} %{WORD:site} %{IPORHOST:upstream} %{NOTSPACE:verb} %{DATA:request} (?:%{DATA:param}|-) %{NUMBER:port} (-|%{USER:user}|(%{WORD:domain}[\\/]?%{USER:user})|(%{USER:user}@%{NOTSPACE:domain})) %{IPORHOST:clientip}(?: %{DATA:agent}|-) %{NUMBER:response} %{NUMBER:status} %{NUMBER:win32Status}"]
+                add_tag => [ "grokked" ]
+            }
+        }
+
+        # Change '+' to ' ' since IIS uses '+' as a delimeter in the
+        # user agent string
+        mutate {
+            gsub => [ agent , "\+" , " " ]
+        }
+
+        useragent { source => "agent" }
+
+        geoip {
+            source => "clientip"
+            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
         }
 
         # Extract first folder after domain
@@ -308,6 +330,32 @@ filter {
 
         date {
             match => [ "eventtime" , "yy-MM-dd HH:mm:ss" ]
+            add_tag => "dated"
+            remove_field => [ "eventtime" ]
+        }
+    }
+
+    # --- Exchange --- #
+
+    if "exchange" in [tags] {
+        # Drop comment and blank lines
+        if [message] =~ /(^#)|(^$)/ {
+            drop {}
+        }
+
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => ["message", "%{EXCHANGELOGS}"]
+            add_tag => [ "grokked" ]
+        }
+
+        # Take tabs out of timestamp
+        mutate {
+            gsub => [ "eventtime" , "\t", " " ]
+        }
+
+        date {
+            match => [ "eventtime" , "yyyy-M-d H:m:s z" ]
             add_tag => "dated"
             remove_field => [ "eventtime" ]
         }
