@@ -328,10 +328,12 @@ filter {
             }
         }
 
-        date {
-            match => [ "eventtime" , "yy-MM-dd HH:mm:ss" ]
-            add_tag => "dated"
-            remove_field => [ "eventtime" ]
+        if "_grokparsefailure" not in [tags] {
+            date {
+                match => [ "eventtime" , "yy-MM-dd HH:mm:ss" ]
+                add_tag => "dated"
+                remove_field => [ "eventtime" ]
+            }
         }
     }
 
