@@ -296,14 +296,16 @@ filter {
 
         if "iis5" in [tags] {
             grok {
-                match => ["message", "%{DATESTAMP:eventtime} %{IPORHOST:clientip} (-|%{USER:user}|(%{WORD:domain}[\\/]?%{USER:user})|(%{USER:user}@%{NOTSPACE:domain})) %{IPORHOST:upstream} %{NUMBER:port} %{NOTSPACE:verb} %{DATA:request} (?:%{DATA:param}|-)(?: %{DATA:agent}|-)"]
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => ["message", "%{IIS5}"]
                 add_tag => [ "grokked" ]
             }
         }
 
         if "iis6" in [tags] {
             grok {
-                match => ["message", "%{DATESTAMP:eventtime} %{WORD:site} %{IPORHOST:upstream} %{NOTSPACE:verb} %{DATA:request} (?:%{DATA:param}|-) %{NUMBER:port} (-|%{USER:user}|(%{WORD:domain}[\\/]?%{USER:user})|(%{USER:user}@%{NOTSPACE:domain})) %{IPORHOST:clientip}(?: %{DATA:agent}|-) %{NUMBER:response} %{NUMBER:status} %{NUMBER:win32Status}"]
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => ["message", "%{IIS6}"]
                 add_tag => [ "grokked" ]
             }
         }
