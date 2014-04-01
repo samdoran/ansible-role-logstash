@@ -39,12 +39,21 @@ input {
     }
 
     file {
+        path => "/var/log/remote/cwa/W3SVC*/*.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "iis" , "iis5" , "cwa" ]
+        type => "iis5"
+    }
+
+    file {
         path => "/var/log/remote/**/W3SVC*/*.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
         start_position => "beginning"
         codec => "plain"
-        tags => [ "iis" ]
-        type => "iis"
+        tags => [ "iis" , "iis6" ]
+        type => "iis6"
     }
 
     file {
@@ -54,6 +63,24 @@ input {
         codec => "json"
         tags => [ "tacacs" ]
         type => "syslog"
+    }
+
+    file {
+        path => "/var/log/remote/heron/**/iis/*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "iis" , "iis6" ]
+        type => "iis6"
+    }
+
+    file {
+        path => "/var/log/remote/heron/**/exchange/*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_exchange"
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "exchange" ]
+        type => "exchange"
     }
 
 }
@@ -78,7 +105,7 @@ output {
     # stdout { debug => true }
 
     redis {
-        host => [ "stint35.royall.com" , "stint36.royall.com"]
+        host => [ "{{ redis_host_1 }}" , "{{ redis_host_2 }}"]
         shuffle_hosts => true
         port => "5678"
         data_type => "list"
