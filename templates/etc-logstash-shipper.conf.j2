@@ -48,7 +48,7 @@ input {
     }
 
     file {
-        path => "/var/log/remote/**/W3SVC*/*.log"
+        path => "/var/log/remote/{ebi,ika,hamachi}/W3SVC*/*.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
         start_position => "beginning"
         codec => "plain"
