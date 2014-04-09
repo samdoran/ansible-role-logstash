@@ -18,9 +18,18 @@ input {
         exclude => [ "*.gz" ]
         start_position => "beginning"
         codec => "json"
-        tags => [ "syslog" ]
-        type => "syslog"
+        tags => [ "jsonlog" ]
+        type => "jsonlog"
     }
+
+    # file {
+    #     path => "/var/log/remote/**/logstash/*.raw.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_logstash"
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "logstash" ]
+    #     type => "logstash"
+    # }
 
     # nginx access logs in their raw format, local0
     file {
