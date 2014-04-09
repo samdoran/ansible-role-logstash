@@ -364,6 +364,24 @@ filter {
             remove_field => [ "eventtime" ]
         }
     }
+
+    # --- Logstash logs --- #
+    if "logstash" in [tags] {
+
+        grok {
+            match => [ "message" , "{:timestamp=>%{QS:eventtime}, :message=>%{QS:message}, :level=>:%{WORD:level}}" ]
+            add_tag => [ "grokked" ]
+        }
+
+        if "_grokparsefailure" not in [tags] {
+            date {
+                match => [ "eventtime" , "ISO8601" ]
+                add_tag => "dated"
+                remove_field => [ "eventtime" ]
+            }
+        }
+    }
+
 }
 
 output {
