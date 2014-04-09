@@ -1,7 +1,8 @@
 input {
 
+    # All standard messages from rsyslog, local2
     file {
-        path => "/var/log/remote/ikura*/**/*.syslog.json.log"
+        path => "/var/log/remote/**/*.syslog.json.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_syslog"
         exclude => [ "*.gz" ]
         start_position => "beginning"
@@ -10,9 +11,10 @@ input {
         type => "syslog"
     }
 
+    # All messages already written in JSON from the app, local1
     file {
-        path => "/var/log/remote/192.168.40.1[567][0-9]/**/*.syslog.json.log"
-        sincedb_path => "/opt/logstash/sincedb/sincedb_aerohive"
+        path => "/var/log/remote/**/*.raw.json.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_jsonlog"
         exclude => [ "*.gz" ]
         start_position => "beginning"
         codec => "json"
@@ -20,6 +22,7 @@ input {
         type => "syslog"
     }
 
+    # nginx access logs in their raw format, local0
     file {
         path => "/var/log/remote/**/nginx/nginx-access*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-access"
@@ -29,6 +32,7 @@ input {
         type => "nginx-access"
     }
 
+    # nginx error logs in their raw format, local0
     file {
         path => "/var/log/remote/**/nginx/nginx-error*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-error"
@@ -47,6 +51,7 @@ input {
         type => "iis5"
     }
 
+    # IIS logs from old IIS servers
     file {
         path => "/var/log/remote/{ebi,ika,hamachi}/W3SVC*/*.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
@@ -56,15 +61,7 @@ input {
         type => "iis6"
     }
 
-    file {
-        path => "/var/log/remote/**/tac_plus/*.syslog.json.log"
-        sincedb_path => "/opt/logstash/sincedb/sincedb_tac_plus"
-        start_position => "beginning"
-        codec => "json"
-        tags => [ "tacacs" ]
-        type => "syslog"
-    }
-
+    # IIS logs from Exchange on heron
     file {
         path => "/var/log/remote/heron/**/iis/*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
@@ -74,6 +71,7 @@ input {
         type => "iis6"
     }
 
+    # Exchange logs from heron
     file {
         path => "/var/log/remote/heron/**/exchange/*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_exchange"
