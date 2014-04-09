@@ -34,7 +34,7 @@ filter {
     }
 
     # Capture actual source host from file path
-    if ([type] == "syslog") or ("nginx" in [tags]) or ("iis" in [tags]) {
+    if 1==1 {
         grok { match => [ "path" , "/var/log/remote/%{IPORHOST:actual_source_host}/" ] }
 
         if [host] != [actual_source_host] {
@@ -146,7 +146,7 @@ filter {
     }
 
     # TACACS
-    if "tacacs" in [tags] {
+    if "tac_plus" in [tags] {
         if "authfail" in [tags] {
             grok {
                 patterns_dir => [ "/opt/logstash/patterns" ]
