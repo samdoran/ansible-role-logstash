@@ -382,6 +382,214 @@ filter {
         }
     }
 
+    # --- ASA logs --- #
+    if [program] =~ /ASA-2-106001/ {
+
+        grok {
+            match => [ "message" , "%{CISCO_DIRECTION:direction} %{WORD:protocol} connection %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{NOTSPACE:dst_ip}/%{INT:dst_port} flags %{GREEDYDATA:tcp_flags} on interface %{GREEDYDATA:interface}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-2-106006|ASA-2-106007|ASA-2-106010/ {
+
+        grok {
+            match => [ "message" , "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{NOTSPACE:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-3-106014/ {
+
+        grok {
+            match => [ "message" , "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{NOTSPACE:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-6-106015/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW106015}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-1-106021/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW106021}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-4-106023/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW106023}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-5-106100/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW106100}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-6-110002/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW110002}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-6-302010/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW302010}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-6-30201[3-6]/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW302013_302014_302015_302016}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-6-30202[01]/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW302020_302021}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-6-305011/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW305011}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-3-31300[148]/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW313001_313004_313008}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-3-313005/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW313005}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-4-402117/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW402117}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-4-402119/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW402119}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-4-419001/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW419001}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-4-419002/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW419002}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-4-500004/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW500004}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-6-60230[34]/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW602303_602304}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-7-71000[12356]/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW710001_710002_710003_710005_710006}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-6-713172/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW713172}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
+    if [program] =~ /ASA-4-733100/ {
+
+        grok {
+            match => [ "message" , "%{CISCOFW733100}"]
+            add_tag => [ "grokked" ]
+        }
+
+    }
+
 }
 
 output {
