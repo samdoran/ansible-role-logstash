@@ -36,9 +36,14 @@ input {
         path => "/var/log/remote/**/nginx/nginx-access*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-access"
         start_position => "beginning"
-        codec => "plain"
         tags => [ "nginx" , "access" ]
         type => "nginx-access"
+        codec => multiline {
+            charset => "US-ASCII"
+            pattern => "^(\s+)?%{IPORHOST}"
+            negate => true
+            what => previous
+        }
     }
 
     # nginx error logs in their raw format, local0
@@ -46,9 +51,14 @@ input {
         path => "/var/log/remote/**/nginx/nginx-error*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-error"
         start_position => "beginning"
-        codec => "plain"
         tags => [ "nginx" , "error" ]
         type => "nginx-error"
+        codec => multiline {
+            charset => "US-ASCII"
+            pattern => "^(\s+)?%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}"
+            negate => true
+            what => previous
+        }
     }
 
     file {
