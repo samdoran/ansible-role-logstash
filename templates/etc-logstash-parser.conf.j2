@@ -76,7 +76,7 @@ filter {
     if [type] == "nginx-access" {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "%{NGINX_ROYALL}" ]
+            match => [ "message" , "(?m)%{NGINX_ROYALL}" ]
             add_tag => [ "grokked", "share_eng" ]
         }
 
@@ -86,22 +86,12 @@ filter {
             source => "clientip"
             database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
         }
-
-        if "_grokparsefailure" not in [tags] {
-
-            # Extract filename and extension
-            grok { match => [ "request" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))" ] }
-
-            if [filename] {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
-            }
-        }
     }
 
     if [type] == "nginx-error" {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "%{NGINX_ERROR}" ]
+            match => [ "message" , "(?m)%{NGINX_ERROR}" ]
             add_tag => [ "grokked" , "share_eng" ]
         }
 
@@ -111,10 +101,23 @@ filter {
         }
     }
 
-    # Extract first folder after domain
-    if ("nginx" in [tags]) and ([request] =~ /\/.*\//) {
-        grok {
-            match => ["request", "/%{DATA:folder}/"]
+    if "_grokparsefailure" not in [tags] {
+
+        # Extract first folder after domain
+        if ("nginx" in [tags]) and ([request] =~ /\/.*\//) {
+            grok {
+                match => ["request", "/%{DATA:folder}/"]
+            }
+        }
+
+        if ("nginx" in [tags]) and ([request] =~ /\/([a-zA-Z0-9._-]+(\?\S+)?$)/) {
+
+            # Extract filename and extension
+            grok { match => [ "request" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))" ] }
+
+            if [filename] {
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
+            }
         }
     }
 
@@ -342,7 +345,10 @@ filter {
 
         if "_grokparsefailure" not in [tags] {
             date {
-                match => [ "eventtime" , "yy-MM-dd HH:mm:ss" ]
+                match => [ "eventtime",
+                    "yy-MM-dd HH:mm:ss",
+                    "yyyy-MM-dd HH:mm:ss"
+                ]
                 add_tag => "dated"
                 remove_field => [ "eventtime" ]
             }
@@ -393,209 +399,39 @@ filter {
     }
 
     # --- ASA logs --- #
-    if [program] =~ /ASA-2-106001/ {
+
+    if [program] =~ /ASA/ {
 
         grok {
-            match => [ "message" , "%{CISCO_DIRECTION:direction} %{WORD:protocol} connection %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{NOTSPACE:dst_ip}/%{INT:dst_port} flags %{GREEDYDATA:tcp_flags} on interface %{GREEDYDATA:interface}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-2-106006|ASA-2-106007|ASA-2-106010/ {
-
-        grok {
-            match => [ "message" , "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{NOTSPACE:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-3-106014/ {
-
-        grok {
-            match => [ "message" , "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{NOTSPACE:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-6-106015/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW106015}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-1-106021/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW106021}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-4-106023/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW106023}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-5-106100/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW106100}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-6-110002/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW110002}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-6-302010/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW302010}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-6-30201[3-6]/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW302013_302014_302015_302016}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-6-30202[01]/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW302020_302021}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-6-305011/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW305011}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-3-31300[148]/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW313001_313004_313008}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-3-313005/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW313005}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-4-402117/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW402117}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-4-402119/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW402119}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-4-419001/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW419001}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-4-419002/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW419002}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-4-500004/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW500004}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-6-60230[34]/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW602303_602304}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-7-71000[12356]/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW710001_710002_710003_710005_710006}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-6-713172/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW713172}"]
-            add_tag => [ "grokked" ]
-        }
-
-    }
-
-    if [program] =~ /ASA-4-733100/ {
-
-        grok {
-            match => [ "message" , "%{CISCOFW733100}"]
-            add_tag => [ "grokked" ]
+            match => [
+              "message", "%{CISCOFW106001}",
+              "message", "%{CISCOFW106006_106007_106010}",
+              "message", "%{CISCOFW106014}",
+              "message", "%{CISCOFW106015}",
+              "message", "%{CISCOFW106021}",
+              "message", "%{CISCOFW106023}",
+              "message", "%{CISCOFW106100}",
+              "message", "%{CISCOFW110002}",
+              "message", "%{CISCOFW302010}",
+              "message", "%{CISCOFW302013_302014_302015_302016}",
+              "message", "%{CISCOFW302020_302021}",
+              "message", "%{CISCOFW305011}",
+              "message", "%{CISCOFW313001_313004_313008}",
+              "message", "%{CISCOFW313005}",
+              "message", "%{CISCOFW402117}",
+              "message", "%{CISCOFW402119}",
+              "message", "%{CISCOFW419001}",
+              "message", "%{CISCOFW419002}",
+              "message", "%{CISCOFW500004}",
+              "message", "%{CISCOFW602303_602304}",
+              "message", "%{CISCOFW710001_710002_710003_710005_710006}",
+              "message", "%{CISCOFW713172}",
+              "message", "%{CISCOFW733100}",
+              "message", "%{CISCO_DIRECTION:direction} %{WORD:protocol} connection %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{NOTSPACE:dst_ip}/%{INT:dst_port} flags %{GREEDYDATA:tcp_flags} on interface %{GREEDYDATA:interface}",
+              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{NOTSPACE:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})",
+              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{NOTSPACE:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)",
+              "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{WORD:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{IP:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group %{DATA:policy_id} \[%{DATA:hashcode1}, %{DATA:hashcode2}\]"
+            ]
         }
 
     }
@@ -606,24 +442,11 @@ output {
 
     # stdout { debug => true }
 
-    if "share_eng" in [tags] {
-        elasticsearch {
-            bind_host => "{{ ansible_default_ipv4.address }}"
-            cluster => "{{ es_cluster_name }}"
-            node_name => "{{ ansible_hostname }}"
-            index => "logstash-eng-%{+YYYY.MM.dd}"
-            port => "9500-9600"
-            flush_size => 500
-        }
-    } else {
-        elasticsearch {
-            bind_host => "{{ ansible_default_ipv4.address }}"
-            cluster => "{{ es_cluster_name }}"
-            node_name => "{{ ansible_hostname }}"
-            port => "9500-9600"
-            flush_size => 500
-        }
+    elasticsearch {
+        bind_host => "{{ ansible_default_ipv4.address }}"
+        cluster => "{{ es_cluster_name }}"
+        node_name => "{{ ansible_hostname }}"
+        port => "9500-9600"
+        flush_size => 500
     }
-
-
 }
