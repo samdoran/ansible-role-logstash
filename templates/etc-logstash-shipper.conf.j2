@@ -4,7 +4,7 @@ input {
     file {
         path => "/var/log/remote/**/*.syslog.json.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_syslog"
-        exclude => [ "*.gz" ]
+        exclude => [ "*.gz" , "%ASA*" ]
         start_position => "beginning"
         codec => "json"
         tags => [ "syslog" ]
@@ -61,44 +61,44 @@ input {
         }
     }
 
-    file {
-        path => "/var/log/remote/cwa/W3SVC*/*.log"
-        sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
-        start_position => "beginning"
-        codec => "plain"
-        tags => [ "iis" , "iis5" , "cwa" ]
-        type => "iis5"
-    }
+    # file {
+    #     path => "/var/log/remote/cwa/W3SVC*/*.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "iis" , "iis5" , "cwa" ]
+    #     type => "iis5"
+    # }
 
-    # IIS logs from old IIS servers
-    file {
-        path => "/var/log/remote/{ebi,ika,hamachi}/W3SVC*/*.log"
-        sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
-        start_position => "beginning"
-        codec => "plain"
-        tags => [ "iis" , "iis6" ]
-        type => "iis6"
-    }
+    # # IIS logs from old IIS servers
+    # file {
+    #     path => "/var/log/remote/{ebi,ika,hamachi}/W3SVC*/*.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "iis" , "iis6" ]
+    #     type => "iis6"
+    # }
 
-    # IIS logs from Exchange on heron
-    file {
-        path => "/var/log/remote/heron/**/iis/*.raw.log"
-        sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
-        start_position => "beginning"
-        codec => "plain"
-        tags => [ "iis" , "iis6" ]
-        type => "iis6"
-    }
+    # # IIS logs from Exchange on heron
+    # file {
+    #     path => "/var/log/remote/heron/**/iis/*.raw.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "iis" , "iis6" ]
+    #     type => "iis6"
+    # }
 
-    # Exchange logs from heron
-    file {
-        path => "/var/log/remote/heron/**/exchange/*.raw.log"
-        sincedb_path => "/opt/logstash/sincedb/sincedb_exchange"
-        start_position => "beginning"
-        codec => "plain"
-        tags => [ "exchange" ]
-        type => "exchange"
-    }
+    # # Exchange logs from heron
+    # file {
+    #     path => "/var/log/remote/heron/**/exchange/*.raw.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_exchange"
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "exchange" ]
+    #     type => "exchange"
+    # }
 
 }
 
