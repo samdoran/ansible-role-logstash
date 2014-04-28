@@ -115,7 +115,7 @@ filter {
             # Extract filename and extension
             grok { match => [ "request" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))" ] }
 
-            if [filename] {
+            if [filename] and [filename] =~ /\./ {
                 grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
             }
         }
