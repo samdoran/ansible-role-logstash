@@ -61,6 +61,16 @@ input {
         }
     }
 
+    # BackupPC logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/BackupPC/BackupPC*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_backuppc"
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "backuppc" ]
+        type => "syslog"
+    }
+
     # file {
     #     path => "/var/log/remote/cwa/W3SVC*/*.log"
     #     sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
@@ -104,7 +114,7 @@ input {
 
 filter {
     if [type] == "syslog" {
-        if [program] != "" {
+        if [program] and [program] != "" {
             mutate {
                 add_tag => [ "%{program}" ]
             }
