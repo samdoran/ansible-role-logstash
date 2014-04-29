@@ -188,6 +188,19 @@ filter {
         }
     }
 
+    # BackupPC
+    if "backuppc" in [tags] {
+        grok {
+            match => [ "message" , "%{TIMESTAMP_ISO8601:timestamp} %{GREEDYDATA:message}" ]
+            add_tag => "grokked"
+        }
+
+        date {
+            match => [ "timestamp" , "ISO8601" , "yyyy-MM-dd HH:mm:ss" ]
+            add_tag => "dated"
+        }
+    }
+
     # --- Aerohive --- #
 
     # Change IP in host field to friendly hostname
