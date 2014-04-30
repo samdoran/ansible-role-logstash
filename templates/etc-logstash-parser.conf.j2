@@ -80,16 +80,19 @@ filter {
             add_tag => [ "grokked", "share_eng" ]
         }
 
+        if [us] {
+            grok {
+                match => [ "us" , "%{UPSTREAMS}" ]
+                add_tag => "upstream_grok"
+                tag_on_failure => [ "upstreams_grokparsefail" ]
+            }
+        }
+
         useragent { source => "agent" }
 
         geoip {
             source => "clientip"
             database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
-        }
-
-        mutate {
-            split => [ "us" , "," ]
-            strip => [ "us" ]
         }
     }
 
