@@ -25,6 +25,7 @@ input {
     # file {
     #     path => "/var/log/remote/**/logstash/*.raw.log"
     #     sincedb_path => "/opt/logstash/sincedb/sincedb_logstash"
+    #     exclude => [ "*.gz" ]
     #     start_position => "beginning"
     #     codec => "plain"
     #     tags => [ "logstash" ]
@@ -35,6 +36,7 @@ input {
     file {
         path => "/var/log/remote/**/nginx/nginx-access*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-access"
+        exclude => [ "*.gz" ]
         start_position => "beginning"
         tags => [ "nginx" , "access" ]
         type => "nginx-access"
@@ -50,6 +52,7 @@ input {
     file {
         path => "/var/log/remote/**/nginx/nginx-error*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-error"
+        exclude => [ "*.gz" ]
         start_position => "beginning"
         tags => [ "nginx" , "error" ]
         type => "nginx-error"
@@ -65,6 +68,7 @@ input {
     file {
         path => "/var/log/remote/**/BackupPC/BackupPC*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_backuppc"
+        exclude => [ "*.gz" ]
         start_position => "beginning"
         codec => "plain"
         tags => [ "backuppc" ]
@@ -74,6 +78,7 @@ input {
     # file {
     #     path => "/var/log/remote/cwa/W3SVC*/*.log"
     #     sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
+    #     exclude => [ "*.gz" ]
     #     start_position => "beginning"
     #     codec => "plain"
     #     tags => [ "iis" , "iis5" , "cwa" ]
@@ -84,6 +89,7 @@ input {
     # file {
     #     path => "/var/log/remote/{ebi,ika,hamachi}/W3SVC*/*.log"
     #     sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
+    #     exclude => [ "*.gz" ]
     #     start_position => "beginning"
     #     codec => "plain"
     #     tags => [ "iis" , "iis6" ]
@@ -94,6 +100,7 @@ input {
     # file {
     #     path => "/var/log/remote/heron/**/iis/*.raw.log"
     #     sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
+    #     exclude => [ "*.gz" ]
     #     start_position => "beginning"
     #     codec => "plain"
     #     tags => [ "iis" , "iis6" ]
@@ -104,6 +111,7 @@ input {
     # file {
     #     path => "/var/log/remote/heron/**/exchange/*.raw.log"
     #     sincedb_path => "/opt/logstash/sincedb/sincedb_exchange"
+    #     exclude => [ "*.gz" ]
     #     start_position => "beginning"
     #     codec => "plain"
     #     tags => [ "exchange" ]
