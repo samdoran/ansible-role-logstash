@@ -16,6 +16,19 @@ input {
         codec => "json"
         threads => 1
     }
+
+{% if ansible_hostname == "kite35" %}
+    imap {
+        host => "mg.royall.com"
+        user => "productionroot"
+        password => "{{ productionroot_password }}"
+        secure => "true"
+        fetch_count => "1"
+        check_interval => "300"
+        delete => true
+        tags => [ "imap" ]
+    }
+{% endif %}
 }
 
 
@@ -34,7 +47,7 @@ filter {
     }
 
     # Capture actual source host from file path
-    if 1==1 {
+    if "imap" not in [tags] {
         grok { match => [ "path" , "/var/log/remote/%{IPORHOST:actual_source_host}/" ] }
 
         if [host] != [actual_source_host] {
@@ -425,6 +438,10 @@ filter {
 
         grok {
             match => [
+              "message", "%{CISCO_DIRECTION:direction} %{WORD:protocol} connection %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{NOTSPACE:dst_ip}/%{INT:dst_port} flags %{GREEDYDATA:tcp_flags} on interface %{GREEDYDATA:interface}",
+              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{NOTSPACE:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})",
+              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{NOTSPACE:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)",
+              "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{WORD:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{IP:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group %{DATA:policy_id} \[%{DATA:hashcode1}, %{DATA:hashcode2}\]",
               "message", "%{CISCOFW106001}",
               "message", "%{CISCOFW106006_106007_106010}",
               "message", "%{CISCOFW106014}",
@@ -447,11 +464,7 @@ filter {
               "message", "%{CISCOFW602303_602304}",
               "message", "%{CISCOFW710001_710002_710003_710005_710006}",
               "message", "%{CISCOFW713172}",
-              "message", "%{CISCOFW733100}",
-              "message", "%{CISCO_DIRECTION:direction} %{WORD:protocol} connection %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{NOTSPACE:dst_ip}/%{INT:dst_port} flags %{GREEDYDATA:tcp_flags} on interface %{GREEDYDATA:interface}",
-              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{NOTSPACE:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})",
-              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{NOTSPACE:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)",
-              "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{WORD:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{IP:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group %{DATA:policy_id} \[%{DATA:hashcode1}, %{DATA:hashcode2}\]"
+              "message", "%{CISCOFW733100}"
             ]
         }
 
