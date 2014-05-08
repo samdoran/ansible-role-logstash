@@ -155,10 +155,21 @@ filter {
 
     # --- Syslogs --- #
     if "sudo" in [tags] {
-        grok {
-            patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "%{SYSLOGTIMESTAMP} sudo:%{SPACE}%{USER:sudoer} : (\(command continued\) %{GREEDYDATA:command}|TTY=%{DATA:tty} ; PWD=%{PATH:pwd} ; USER=%{USER:user} ; COMMAND=%{GREEDYDATA:command})" ]
-            add_tag => "grokked"
+        if "authfail" in [tags] {
+            kv {}
+            mutate {
+                rename => [ "ruser" , "sudoer" ]
+            }
+        } else {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [
+                    "message" , "%{SYSLOGTIMESTAMP} sudo:%{SPACE}%{USER:sudoer} : (\(command continued\) %{GREEDYDATA:command}|TTY=%{DATA:tty} ; PWD=%{PATH:pwd} ; USER=%{USER:user} ; COMMAND=%{GREEDYDATA:command})",
+                    "message" , "%{SYSLOGTIMESTAMP} sudo:%{SPACE}%{USER:sudoer} : %{DATA} ; TTY=%{DATA:tty} ; PWD=%{PATH:pwd} ; USER=%{USER:user} ; COMMAND=%{GREEDYDATA:command}"
+                ]
+                add_tag => "grokked"
+                tag_on_failure => [ "_grokparsefailure" , "sudo_grok_fail"]
+            }
         }
     }
 
