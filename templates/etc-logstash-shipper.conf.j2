@@ -75,6 +75,17 @@ input {
         type => "syslog"
     }
 
+    # nessus logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/nessus/nessus*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_nessus"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "nessus" ]
+        type => "syslog"
+    }
+
     # file {
     #     path => "/var/log/remote/cwa/W3SVC*/*.log"
     #     sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
