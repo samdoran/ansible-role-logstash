@@ -42,7 +42,7 @@ filter {
     }
 
     # Tag login failures
-    if [type] == "syslog" and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)|(?i:login failure)/ {
+    if [type] == "syslog" and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)|(?i:login failure)|(?:bad login)/ {
         mutate { add_tag => [ "authfail" ] }
     }
 
@@ -443,6 +443,33 @@ filter {
         }
     }
 
+    # --- Nessus logs --- #
+    if "nessus" in [tags] {
+        grok {
+            match => [ "message" , "\[%{DATA:timestamp}\]\[%{DATA}\]( \[%{DATA:program}\])? %{GREEDYDATA:syslog_message}" ]
+            add_tag => [ "grokked" ]
+        }
+        if [syslog_message] =~ /(?i:logged out)|(?i:login)/ {
+            grok {
+                match => [
+                    "syslog_message" , "([Uu]ser|login of) \'%{USERNAME:user}\'( by %{USERNAME:user})?( from %{IP:source_ip})?" ,
+                    "syslog_message" , "User %{USERNAME:user} \(%{IP:source_ip}\) successfully logged out"
+                ]
+                tag_on_failure => [ "_grokparsefailure" , "nessus_user_grokfail"]
+            }
+        }
+
+        if "_grokparsefailure" not in [tags] {
+            date {
+                match => [ "timestamp",
+                    "EEE MMM  d HH:mm:ss yyyy",
+                    "EEE MMM dd HH:mm:ss yyyy"
+                ]
+                add_tag => "dated"
+            }
+        }
+    }
+
     # --- ASA logs --- #
 
     if [program] =~ /ASA/ {
@@ -484,8 +511,6 @@ filter {
 }
 
 output {
-
-    # stdout { debug => true }
 
     elasticsearch {
         bind_host => "{{ ansible_default_ipv4.address }}"
