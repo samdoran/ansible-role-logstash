@@ -56,7 +56,11 @@ filter {
                 remove_field => [ "actual_source_host" ]
             }
         }
-        else {
+
+        if [host] =~ /^[a-zA-Z].*\./ {
+            mutate { rename => [ "host" , "fqdn" ] }
+            grok   { match  => [ "fqdn" , "%{DATA:host}\.%{HOST:domain}$" ] }
+        } else {
             mutate { remove_field => [ "actual_source_host" ] }
         }
     }
