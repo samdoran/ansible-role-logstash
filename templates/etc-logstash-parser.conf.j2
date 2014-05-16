@@ -89,6 +89,21 @@ filter {
     #     }
     # }
 
+
+    # --- Postfix logs --- #
+    if "postfix" in [tags] or "dkimproxy.out" in [tags] {
+        kv {
+            trim => "<>,"
+        }
+
+        if "postfix" in [tags] {
+            grok {
+                match => [ "message" , "postfix/%{DATA:subprogram}\[" ]
+                add_tag => [ "grokked" ]
+            }
+        }
+    }
+
     # --- Nginx logs --- #
     if [type] == "nginx-access" {
         grok {
