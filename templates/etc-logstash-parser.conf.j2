@@ -48,7 +48,7 @@ filter {
 
     # Capture actual source host from file path
     if "imap" not in [tags] {
-        grok { match => [ "path" , "/var/log/remote/%{IPORHOST:actual_source_host}/" ] }
+        grok { match => [ "path" , "/var/log/remote/%{DATA:actual_source_host}/" ] }
 
         if [host] != [actual_source_host] {
             mutate {
