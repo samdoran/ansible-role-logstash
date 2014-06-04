@@ -235,7 +235,8 @@ filter {
                 match => [  "message" , "%{TACPLUS}",
                             "message" , "%{TACPLUS_LOGIN_FAIL}",
                             "message" , "%{TACPLUS_ERROR}",
-                            "message" , "error retrieving information about user %{USER:user}"
+                            "message" , "error retrieving information about user %{USER:user}",
+                            "message" , "auth could not identify password for \[%{USER:user}\]"
                 ]
             }
         }
