@@ -60,6 +60,7 @@ filter {
         if [host] =~ /^[a-zA-Z].*\./ {
             mutate { rename => [ "host" , "fqdn" ] }
             grok   { match  => [ "fqdn" , "%{DATA:host}\.%{HOST:domain}$" ] }
+            mutate { remove_field => [ "actual_source_host" ] }
         } else {
             mutate { remove_field => [ "actual_source_host" ] }
         }
@@ -223,16 +224,29 @@ filter {
             drop {}
         }
 
-        # Main command logging
-        kv {}
-        grok {
-            patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [  "message" , "%{TACPLUS}",
-                        "message" , "%{TACPLUS_LOGIN_FAIL}",
-                        "message" , "%{TACPLUS_ERROR}"
-            ]
-            add_tag => "grokked"
+        # Grab key values but exclude cmd because kv doesn't get the whole command
+        kv {
+            exclude_keys => [ "cmd" ]
         }
+
+        if "check pass" not in [message] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [  "message" , "%{TACPLUS}",
+                            "message" , "%{TACPLUS_LOGIN_FAIL}",
+                            "message" , "%{TACPLUS_ERROR}",
+                            "message" , "error retrieving information about user %{USER:user}"
+                ]
+            }
+        }
+
+        if "cmd=" in [message] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "%{TACCMD}" ]
+            }
+        }
+
     }
 
     # BackupPC
