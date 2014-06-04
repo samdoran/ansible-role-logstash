@@ -211,13 +211,6 @@ filter {
 
     # TACACS
     if "tac_plus" in [tags] {
-        if "authfail" in [tags] {
-            grok {
-                patterns_dir => [ "/opt/logstash/patterns" ]
-                match => [ "message" , "%{TACPLUS_LOGIN_FAIL}" ]
-                add_tag => "grokked"
-            }
-        }
 
         # Drop noisy connect messages
         if "connect from" in [message] {
@@ -225,12 +218,14 @@ filter {
         }
 
         # Main command logging
-        if [message] =~ /tty\d/ {
-            grok {
-                patterns_dir => [ "/opt/logstash/patterns" ]
-                match => [ "message" , "%{TACPLUS}" ]
-                add_tag => "grokked"
-            }
+        kv {}
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [  "message" , "%{TACPLUS}",
+                        "message" , "%{TACPLUS_LOGIN_FAIL}",
+                        "message" , "%{TACPLUS_ERROR}"
+            ]
+            add_tag => "grokked"
         }
     }
 

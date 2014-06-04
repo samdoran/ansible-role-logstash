@@ -1,5 +1,6 @@
 TACCMD cmd=%{DATA:command} <cr>
 TACFROM %{SPACE}%{IP:clientip}%{SPACE}%{WORD:status}
 
+TACPLUS_ERROR tac_plus\[%{INT}\]: Error %{IPORHOST:nas}
 TACPLUS_LOGIN_FAIL login failure: %{USER:user} %{IPORHOST:nas} \(%{IPORHOST:ip}\) %{WORD:tty}
-TACPLUS  %{IP:ip}%{SPACE}%{USER:user}%{SPACE}%{WORD:tty}%{TACFROM}(%{SPACE}task_id=%{INT:task_id})?(%{SPACE}timezone=%{WORD:timezone})?(%{SPACE}service=%{WORD:service})?(%{SPACE}start_time=%{INT:start_time})?(%{SPACE}priv-lvl=%{INT:priv_lvl})?(%{SPACE}disc-cause=%{INT:disc_cause})?(%{SPACE}disc-cause-ext=%{WORD:disc_cause_ext})?(%{SPACE}pre_session_time=%{WORD:pre_session_time})?(%{SPACE}elapsed_time=%{WORD:elapsed_time})?(%{SPACE}%{TACCMD})?
+TACPLUS  %{IP:ip}%{SPACE}%{USER:user}%{SPACE}%{WORD:tty}%{TACFROM}%{GREEDYDATA}(%{SPACE}%{TACCMD})?
