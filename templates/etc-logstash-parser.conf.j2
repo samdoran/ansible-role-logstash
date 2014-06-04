@@ -223,7 +223,7 @@ filter {
             patterns_dir => [ "/opt/logstash/patterns" ]
             match => [  "message" , "%{TACPLUS}",
                         "message" , "%{TACPLUS_LOGIN_FAIL}",
-                        "message" , "%{TACERROR}"
+                        "message" , "%{TACPLUS_ERROR}"
             ]
             add_tag => "grokked"
         }
