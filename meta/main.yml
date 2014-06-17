@@ -16,3 +16,4 @@ galaxy_info:
 
 dependencies:
   - { role: ls_common }
+version: 1.3
