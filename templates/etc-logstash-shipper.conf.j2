@@ -1,5 +1,12 @@
 input {
 
+    # Open a port for collecting Windows Eventlogs from NXlog
+    tcp {
+        port => 5514
+        codec => "json"
+        type => "eventlog"
+    }
+
     # All standard messages from rsyslog, local2
     file {
         path => "/var/log/remote/**/*.syslog.json.log"
