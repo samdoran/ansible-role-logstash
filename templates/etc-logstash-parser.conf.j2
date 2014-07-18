@@ -274,12 +274,15 @@ filter {
         mutate {
             rename => [ "AccountName", "user" ]
             rename => [ "AccountType", "[eventlog][account_type]" ]
+            rename => [ "ActionName", "[eventlog][action_name]" ]
             rename => [ "ActivityId", "[eventlog][activity_id]" ]
+            rename => [ "ActivityID", "[eventlog][activity_id]" ]
             rename => [ "Address", "ip6" ]
             rename => [ "ApplicationPath", "[eventlog][application_path]" ]
             rename => [ "AuthenticationPackageName", "[eventlog][authentication_package_name]" ]
             rename => [ "Category", "[eventlog][category]" ]
             rename => [ "Channel", "[eventlog][channel]" ]
+            rename => [ "DiagnosticModuleImageName", "[eventlog][diagnostic_module_image_name]" ]
             rename => [ "Domain", "domain" ]
             rename => [ "EventID", "[eventlog][event_id]" ]
             rename => [ "EventType", "[eventlog][event_type]" ]
@@ -318,6 +321,8 @@ filter {
             rename => [ "TargetLogonId", "[eventlog][target_logonid]" ]
             rename => [ "TargetUserName", "[eventlog][target_user_name]" ]
             rename => [ "TargetUserSid", "[eventlog][target_user_sid]" ]
+            rename => [ "TaskName", "[eventlog][task_name]" ]
+            rename => [ "TaskInstanceId", "[task_instance_id]" ]
             rename => [ "ThreadID", "thread" ]
             rename => [ "param1" , "[eventlog][program]" ]
             rename => [ "param2" , "[eventlog][state]" ]
@@ -328,10 +333,12 @@ filter {
         mutate {
             remove_field => [
                         "CurrentOrNextState",
+                        "DiagnosticModuleId",
                         "Description",
                         "EventReceivedTime",
                         "EventTime",
                         "EventTimeWritten",
+                        "InstanceId",
                         "IPVersion",
                         "KeyLength",
                         "Keywords",
@@ -341,6 +348,7 @@ filter {
                         "Name",
                         "Opcode",
                         "OpcodeValue",
+                        "OriginalActivityId",
                         "PolicyProcessingMode",
                         "Protocol",
                         "ProtocolType",
@@ -362,6 +370,7 @@ filter {
             grok   {
                 match  => [ "fqdn" , "%{DATA:host}\.%{HOST:domain}$" ]
                 overwrite => [ "host" ]
+                overwrite => [ "domain" ]
             }
         }
     }
