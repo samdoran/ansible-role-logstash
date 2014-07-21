@@ -17,11 +17,11 @@
   lineinfile: dest=/etc/security/limits.d/90-nproc.conf line='logstash   hard    nofile    792793'
   tags: [ "logstash" , "config" , "parserconf" ]
 
-- name: Copy SSL certificate
-  template: src=logstash.crt.j2 dest={{ ssl_cert_path }}/logstash.crt owner=root group=root mode=0644
+- name: Copy logstash SSL certificate
+  template: src=logstash.crt.j2 dest={{ ssl_crt_path }}/logstash.crt owner=root group=root mode=0644
   tags: [ "logstash" , "config" , "parserconf" , "ssl" ]
 
-- name: Copy SSL private key
-  template: src=logstash.key.j2 dest={{ ssl_key_path }}/logstash.key owner=root group=root mode=0600
+- name: Copy logstash SSL private key
+  template: src=logstash.key.j2 dest={{ ssl_key_path }}/logstash.key owner=logstash group=root mode=0600
   tags: [ "logstash" , "config" , "parserconf" , "ssl" ]
 
