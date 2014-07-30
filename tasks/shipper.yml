@@ -1,0 +1,13 @@
+---
+- name: Copy shipper config
+  template: src=shipper.conf.j2 dest=/etc/logstash/conf.d/shipper.conf owner=root group=root mode=0644
+  tags: [ "logstash" , "config" , "shipperconf" ]
+  notify: restart logstash
+
+- name: Copy logstash SSL certificate
+  template: src=logstash.crt.j2 dest={{ logstash_ssl_crt_path }}/logstash.crt owner=root group=root mode=0644
+  tags: [ "logstash" , "config" , "parserconf" , "ssl" ]
+
+- name: Copy logstash SSL private key
+  template: src=logstash.key.j2 dest={{ logstash_ssl_key_path }}/logstash.key owner=logstash group=root mode=0600
+  tags: [ "logstash" , "config" , "parserconf" , "ssl" ]
