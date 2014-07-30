@@ -7,8 +7,8 @@ input {
         codec => "json"
         type => "eventlog"
         ssl_enable => true
-        ssl_cert => "{{ ssl_crt_path }}/logstash.crt"
-        ssl_key  => "{{ ssl_key_path }}/logstash.key"
+        ssl_cert => "{{ logstash_ssl_crt_path }}/logstash.crt"
+        ssl_key  => "{{ logstash_ssl_key_path }}/logstash.key"
     }
 
     # All standard messages from rsyslog, local2

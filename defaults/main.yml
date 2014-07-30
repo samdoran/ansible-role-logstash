@@ -1,6 +1,12 @@
 ---
-ssl_crt_path:  /etc/pki/tls/certs
-ssl_key_path:  /etc/pki/tls/private
+# Redis hosts
+redis_host_1:
+redis_host_2:
+
+
+# SSL configuration
+logstash_ssl_crt_path:  /etc/pki/tls/certs
+logstash_ssl_key_path:  /etc/pki/tls/private
 
 
 logstash_ssl_crt: |

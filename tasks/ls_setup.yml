@@ -8,10 +8,7 @@
   tags: logstash
 
 - name: Set ownership on /var/log/logstash
-  file: path=/var/log/logstash
-        owner=logstash
-        group=logstash
-        recurse=yes
+  file: path=/var/log/logstash owner=logstash group=logstash recurse=yes
   tags: logstash
 
 - name: Create logreader group
@@ -19,9 +16,7 @@
   tags: logstash
 
 - name: Add logstash to logreader group
-  user: name=logstash
-        append=yes
-        groups=logreader
+  user: name=logstash append=yes groups=logreader
   tags: logstash
 
 - name: Raise file limit for logstash
