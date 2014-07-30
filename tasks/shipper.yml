@@ -4,15 +4,6 @@
   tags: [ "logstash" , "config" , "shipperconf" ]
   notify: restart logstash
 
-- name: Set heap size for logstash
-  lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?LS_HEAP_SIZE=' line='LS_HEAP_SIZE="4096m"' state=present
-  tags: [ "logstash" , "config" , "parserconf" ]
-  notify: restart logstash
-
-- name: Raise open file limits for logstash user
-  lineinfile: dest=/etc/security/limits.d/90-nproc.conf line='logstash   hard    nofile    792793'
-  tags: [ "logstash" , "config" , "parserconf" ]
-
 - name: Copy logstash SSL certificate
   template: src=logstash.crt.j2 dest={{ logstash_ssl_crt_path }}/logstash.crt owner=root group=root mode=0644
   tags: [ "logstash" , "config" , "parserconf" , "ssl" ]

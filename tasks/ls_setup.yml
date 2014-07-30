@@ -19,6 +19,8 @@
   user: name=logstash append=yes groups=logreader
   tags: logstash
 
-- name: Raise file limit for logstash
-  lineinfile: dest=/etc/sysconfig/logstash regexp='^(#)?LS_OPEN_FILES=' line='LS_OPEN_FILES=65536' state=present
+- name: Copy logstash sysconfig
+  template: src=sysconfig-logstash.j2 dest=/etc/sysconfig/logstash owner=root group=root mode=0644
   tags: [ 'logstash' , 'config' ]
+  notify: restart logstash
+
