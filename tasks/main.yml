@@ -1,0 +1,9 @@
+---
+- name: Install packages
+  yum: name={{ item }} state=present
+  tags: packages
+  with_items:
+    - java-1.7.0-openjdk
+
+- include: ls_repo.yml
+- include: ls_setup.yml
