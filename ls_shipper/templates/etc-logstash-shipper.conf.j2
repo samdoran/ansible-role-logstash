@@ -1,5 +1,16 @@
 input {
 
+    # Open a port for collecting Windows Eventlogs from NXlog
+    # logstash.crt must be installed on each Windows system for TLS to work
+    tcp {
+        port => 5514
+        codec => "json"
+        type => "eventlog"
+        ssl_enable => true
+        ssl_cert => "{{ ssl_crt_path }}/logstash.crt"
+        ssl_key  => "{{ ssl_key_path }}/logstash.key"
+    }
+
     # All standard messages from rsyslog, local2
     file {
         path => "/var/log/remote/**/*.syslog.json.log"
@@ -156,7 +167,7 @@ output {
         port => "5678"
         data_type => "list"
         key => "logstash"
-        workers => 2
+        workers => {{ ansible_processor_count }}
     }
 
 }
