@@ -1,0 +1,173 @@
+input {
+
+    # Open a port for collecting Windows Eventlogs from NXlog
+    # logstash.crt must be installed on each Windows system for TLS to work
+    tcp {
+        port => 5514
+        codec => "json"
+        type => "eventlog"
+        ssl_enable => true
+        ssl_cert => "{{ ssl_crt_path }}/logstash.crt"
+        ssl_key  => "{{ ssl_key_path }}/logstash.key"
+    }
+
+    # All standard messages from rsyslog, local2
+    file {
+        path => "/var/log/remote/**/*.syslog.json.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_syslog"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "json"
+        tags => [ "syslog" ]
+        type => "syslog"
+    }
+
+    # All messages already written in JSON from the app, local1
+    file {
+        path => "/var/log/remote/**/*.raw.json.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_jsonlog"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "json"
+        tags => [ "jsonlog" ]
+        type => "jsonlog"
+    }
+
+    # file {
+    #     path => "/var/log/remote/**/logstash/*.raw.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_logstash"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "logstash" ]
+    #     type => "logstash"
+    # }
+
+    # nginx access logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/nginx/nginx-access*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-access"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        tags => [ "nginx" , "access" ]
+        type => "nginx-access"
+        codec => multiline {
+            charset => "US-ASCII"
+            pattern => "^(\s+)?%{IPORHOST}"
+            negate => true
+            what => previous
+        }
+    }
+
+    # nginx error logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/nginx/nginx-error*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-error"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        tags => [ "nginx" , "error" ]
+        type => "nginx-error"
+        codec => multiline {
+            charset => "US-ASCII"
+            pattern => "^(\s+)?%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}"
+            negate => true
+            what => previous
+        }
+    }
+
+    # BackupPC logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/BackupPC/BackupPC*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_backuppc"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "backuppc" ]
+        type => "syslog"
+    }
+
+    # nessus logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/nessus/nessus*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_nessus"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "nessus" ]
+        type => "syslog"
+    }
+
+    # file {
+    #     path => "/var/log/remote/cwa/W3SVC*/*.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "iis" , "iis5" , "cwa" ]
+    #     type => "iis5"
+    # }
+
+    # # IIS logs from old IIS servers
+    # file {
+    #     path => "/var/log/remote/{ebi,ika,hamachi}/W3SVC*/*.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "iis" , "iis6" ]
+    #     type => "iis6"
+    # }
+
+    # # IIS logs from Exchange on heron
+    # file {
+    #     path => "/var/log/remote/heron/**/iis/*.raw.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "iis" , "iis6" ]
+    #     type => "iis6"
+    # }
+
+    # # Exchange logs from heron
+    # file {
+    #     path => "/var/log/remote/heron/**/exchange/*.raw.log"
+    #     sincedb_path => "/opt/logstash/sincedb/sincedb_exchange"
+    #     exclude => [ "*.gz" ]
+    #     start_position => "beginning"
+    #     codec => "plain"
+    #     tags => [ "exchange" ]
+    #     type => "exchange"
+    # }
+
+}
+
+filter {
+    if [type] == "syslog" {
+        if [program] and [program] != "" {
+            mutate {
+                add_tag => [ "%{program}" ]
+            }
+        }
+
+        mutate {
+            replace => [ "host" , "%{source_host}" ]
+            remove_field => [ "source_host" ]
+        }
+    }
+}
+
+output {
+
+    # stdout { debug => true }
+
+    redis {
+        host => [ "{{ redis_host_1 }}" , "{{ redis_host_2 }}"]
+        shuffle_hosts => true
+        port => "5678"
+        data_type => "list"
+        key => "logstash"
+        workers => {{ ansible_processor_count }}
+    }
+
+}
