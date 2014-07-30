@@ -1,0 +1,111 @@
+# --- audit logs --- #
+type=ADD_USER
+type=CRED_ACQ
+type=CRED_DISP
+type=ADD_GROUP msg=audit(1375362930.761:791): user pid=5979 uid=0 auid=501 ses=111 subj=unconfined_u:system_r:groupadd_t:s0-s0:c0.c1023 msg='op= id=48 exe="/usr/sbin/groupadd" hostname=? addr=? terminal=? res=success'
+pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): user pid=%{NUMBER:audit_pid} uid=%{NUMBER:audit_uid} auid=%{NUMBER:audit_auid} ses=%{NUMBER:audit_ses} subj=(?<audit_subj>[\w:\.-]+) msg=%{QUOTEDSTRING:audit_message}" ]
+
+
+
+type=AVC msg=audit(1374753335.093:13): avc:  denied  { module_request } for  pid=970 comm="pickup" kmod="net-pf-10" scontext=system_u:system_r:postfix_pickup_t:s0 tcontext=system_u:system_r:kernel_t:s0 tclass=system
+pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): " ]
+
+
+type=CONFIG_CHANGE msg=audit(1375306603.216:4): audit_backlog_limit=320 old=64 auid=4294967295 ses=4294967295 subj=system_u:system_r:auditctl_t:s0 res=1
+pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): audit_backlog_limit=%{NUMBER:audit_backlog_limit} old=%{NUMBER:audit_old} auid=%{NUMBER:audit_auid} ses=%{NUMBER:audit_ses} subj=(?<audit_subj>[\w:\.-]+) res=%{WORD:audit_res}" ]
+
+ pattern => [ "" ]
+
+
+
+
+
+
+type=USER_START msg=audit(1376930602.688:19564): user pid=29934 uid=0 auid=501 ses=3155 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 msg='op=PAM:session_open acct="root" exe="/usr/bin/sudo" hostname=? addr=? terminal=/dev/pts/0 res=success'
+
+pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): user pid=%{NUMBER:audit_pid} uid=%{NUMBER:audit_uid} auid=%{NUMBER:audit_audid} ses=%{NUMBER:audit_ses} subj=(?<audit_subj>[\w:\.-]+\b) msg=(?<audit_msg>[\'\S]+) acct=%{QUOTEDSTRING:audit_acct} exe=%{QUOTEDSTRING:audit_exe} hostname=(?<audit_hostname>\?|%{IPORHOST}) addr=(?<audit_addr>\?|%{IPORHOST}) terminal=%{TTY:audit_terminal} res=%{WORD:audit_res}" ]
+
+
+type=SYSCALL msg=audit(1376926446.780:433904): arch=c000003e syscall=77 per=400000 success=yes exit=0 a0=71 a1=0 a2=32 a3=5b40 items=0 ppid=10869 pid=10917 auid=4294967295 uid=498 gid=498 euid=498 suid=498 fsuid=498 egid=498 sgid=498 fsgid=498 tty=(none) ses=4294967295 comm="input|file|/var" exe="/usr/java/jdk1.6.0_38/bin/java" subj=system_u:system_r:unconfined_java_t:s0 key="perm_mod"
+
+pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): arch=%{BASE16NUM:audit_arch} syscall=%{NUMBER:audit_syscall} per=%{NUMBER:audit_per} success=%{WORD:audit_success} exit=%{NUMBER:audit_exit} a0=%{NUMBER:audit_a0} a1=%{NUMBER:audit_a1} a2=%{NUMBER:audit_a2} a3=%{BASE16NUM:audit_a3} items=%{NUMBER:audit_items} ppid=%{NUMBER:audit_ppid} pid=%{NUMBER:audit_pid} auid=%{NUMBER:audit_auid} uid=%{NUMBER:audit_uid} gid=%{NUMBER:audit_gid} euid=%{NUMBER:euid} suid=%{NUMBER:suid} fsuid=%{NUMBER:fsuid} egid=%{NUMBER:egid} sgid=%{NUMBER:sgid} fsgid=%{NUMBER:fsgid} tty=(?<audit_tty>\(none\)|%{TTY}) ses=%{NUMBER:audit_ses} comm=%{QUOTEDSTRING:audit_comm} exe=%{QUOTEDSTRING:audit_exe} subj=(?<audit_subj>[\w:\.-]+\b) key=%{QUOTEDSTRING:audit_key} " ]
+
+
+type=%{WORD:audit_type}
+msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\):
+ arch=%{BASE16NUM:audit_arch}
+ syscall=%{NUMBER:audit_syscall}
+ per=%{NUMBER:audit_per}
+ success=%{WORD:audit_success}
+ exit=%{NUMBER:audit_exit}
+ a0=%{NUMBER:audit_a0}
+ a1=%{NUMBER:audit_a1}
+ a2=%{NUMBER:audit_a2}
+ a3=%{BASE16NUM:audit_a3}
+ items=%{NUMBER:audit_items}
+ ppid=%{NUMBER:audit_ppid}
+ pid=%{NUMBER:audit_pid}
+ auid=%{NUMBER:audit_auid}
+ uid=%{NUMBER:audit_uid}
+ gid=%{NUMBER:audit_gid}
+ euid=%{NUMBER:euid}
+ suid=%{NUMBER:suid}
+ fsuid=%{NUMBER:fsuid}
+ egid=%{NUMBER:egid}
+ sgid=%{NUMBER:sgid}
+ fsgid=%{NUMBER:fsgid}
+ tty=(?<audit_tty>\(none\)|%{TTY})
+ ses=%{NUMBER:audit_ses}
+ comm=%{QUOTEDSTRING:audit_comm}
+ exe=%{QUOTEDSTRING:audit_exe}
+ subj=(?<audit_subj>[\w:\.-]+)
+ id=%{NUMBER:audit_id}
+ msg=(?<audit_msg>[\'\S]+\b)
+ key=%{QUOTEDSTRING:audit_key}
+ hostname=(?<audit_hostname>\?|%{IPORHOST})
+ addr=(?<audit_addr>\?|%{IPORHOST})
+ terminal=%{TTY:audit_terminal}
+ res=%{WORD:audit_res}
+ %{GREEDYDATA:audit_message}
+
+pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): %{GREEDYDATA:audit_message}" ]
+
+
+
+type=ADD_GROUP
+type=ADD_USER
+type=AVC
+type=CONFIG_CHANGE
+type=CRED_ACQ
+type=CRED_DISP
+type=CRYPTO_KEY_USER
+type=CRYPTO_SESSION
+type=DAEMON_END
+type=DAEMON_START
+type=LOGIN
+type=MAC_POLICY_LOAD
+type=NETFILTER_CFG
+type=SYSCALL
+type=SYSTEM_RUNLEVEL
+type=SYSTEM_SHUTDOWN
+type=USER_ACCT
+type=USER_AUTH
+type=USER_CHAUTHTOK
+type=USER_CMD
+type=USER_END
+type=USER_LOGIN
+type=USER_LOGOUT
+type=USER_ROLE_CHANGE
+type=USER_START
+type=USYS_CONFIG
+
+
+
+# --- nginx logs --- #
+
+39.50.174.224 www.uofminn.org - [20/Aug/2013:14:01:11 -0400] "POST /international/___rpc.cfc?method=savefields&_d=1377021962516 HTTP/1.1" 200 38 "https://www.uofminn.org/international/about_you.htm" "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36" rt=0.241 ut="0.241" cs=- us=172.20.1.53:8080
+pattern => [ "%{COMBINEDAPACHELOG}" ]
+
+2013/08/19 17:19:14 [error] 28087#0: *842180099 connect() failed (113: No route to host) while connecting to upstream, client: 209.222.89.42, server: crow3.email-inquiry.org, request: "POST /rpc/serendipity_xmlrpc.php HTTP/1.1", upstream: "http://172.18.2.159:80/rpc/serendipity_xmlrpc.php", host: "68.142.179.159"
+pattern => [ "(?<timestamp>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}) (?<nginx_error_message>\[error\].*), client: %{IP:nginx_error_client_ip}, server: %{IPORHOST:nginx_error_server}, request: %{DATA:nginx_error_request}, upstream: %{DATA:nginx_error_upstream}, host: %{QS:nginx_error_host}" ]
+

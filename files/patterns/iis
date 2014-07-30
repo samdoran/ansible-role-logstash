@@ -1,0 +1,4 @@
+IISUSERNAME (-|%{USER:user}|(?<user>%{WORD}%{SPACE}%{WORD})|(%{WORD:domain}[\\/]+?%{USER:user})|(%{USER:user}@%{NOTSPACE:domain}))
+
+IIS5 %{DATESTAMP:eventtime} %{IPORHOST:clientip} %{IISUSERNAME} %{IPORHOST:upstream} %{NUMBER:port} %{NOTSPACE:verb} %{DATA:request} (?:%{DATA:param}|-)(?: %{DATA:agent}|-)
+IIS6 %{DATESTAMP:eventtime} %{WORD:site} %{IPORHOST:upstream} %{NOTSPACE:verb} %{DATA:request} (?:%{DATA:param}|-) %{NUMBER:port} %{IISUSERNAME} %{IPORHOST:clientip}(?: %{DATA:agent}|-) %{NUMBER:response} %{NUMBER:status} %{NUMBER:win32Status}

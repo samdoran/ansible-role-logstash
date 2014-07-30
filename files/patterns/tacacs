@@ -1,0 +1,6 @@
+TACCMD cmd=%{DATA:command} <cr>
+TACFROM %{SPACE}%{IP:clientip}%{SPACE}%{WORD:status}
+
+TACPLUS_ERROR tac_plus\[%{INT}\]: Error %{IPORHOST:nas}
+TACPLUS_LOGIN_FAIL login failure: %{USER:user} %{IPORHOST:nas} \(%{IPORHOST:ip}\) %{WORD:tty}
+TACPLUS  %{IP:ip}%{SPACE}%{USER:user}%{SPACE}%{WORD:tty}%{TACFROM}%{GREEDYDATA}

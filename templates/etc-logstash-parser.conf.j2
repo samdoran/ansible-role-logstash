@@ -1,0 +1,670 @@
+input {
+    redis {
+        host => "{{ redis_host_1 }}"
+        port => 5678
+        data_type => "list"
+        key => "logstash"
+        codec => "json"
+        threads => 1
+    }
+
+    redis {
+        host => "{{ redis_host_2 }}"
+        port => 5678
+        data_type => "list"
+        key => "logstash"
+        codec => "json"
+        threads => 1
+    }
+
+{% if ansible_hostname == "kite35" %}
+    imap {
+        host => "mg.royall.com"
+        user => "productionroot"
+        password => "{{ productionroot_password }}"
+        secure => "true"
+        fetch_count => "1"
+        check_interval => "300"
+        delete => true
+        tags => [ "imap" ]
+    }
+{% endif %}
+}
+
+
+filter {
+
+    # --- Tag things --- #
+
+    # Tag session messages
+    if [type] == "syslog" and [message] =~ /session (opened|closed) for user/ {
+        mutate { add_tag => [ "session" ] }
+    }
+
+    # Tag login failures
+    if [type] == "syslog" and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)|(?i:login failure)|(?:bad login)/ {
+        mutate { add_tag => [ "authfail" ] }
+    }
+
+    # Capture actual source host from file path
+    if "imap" not in [tags] and [type] != "eventlog" {
+        grok { match => [ "path" , "/var/log/remote/%{DATA:actual_source_host}/" ] }
+
+        if [host] != [actual_source_host] {
+            mutate {
+                replace => [ "host" , "%{actual_source_host}" ]
+                remove_field => [ "actual_source_host" ]
+            }
+        }
+
+        if [host] =~ /^[a-zA-Z].*\./ {
+            mutate { rename => [ "host" , "fqdn" ] }
+            grok   { match  => [ "fqdn" , "%{DATA:host}\.%{HOST:domain}$" ] }
+            mutate { remove_field => [ "actual_source_host" ] }
+        } else {
+            mutate { remove_field => [ "actual_source_host" ] }
+        }
+    }
+
+    # Tag aerohive logs. This is based on the source IP address
+    if [source_ip] =~ /192\.168\.40\.1[567][0-9]/ {
+        mutate { add_tag => "aerohive" }
+    }
+
+
+    # --- Audit logs --- #
+    # if [type] == "audit" {
+
+    #     grok {
+    #         type => "audit"
+    #         patterns_dir => [ "/opt/logstash/patterns" ]
+    #         pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): user pid=%{NUMBER:audit_pid} uid=%{NUMBER:audit_uid} auid=%{NUMBER:audit_audid} ses=%{NUMBER:audit_ses} subj=(?<audit_subj>[\w:\.-]+\b) msg=(?<audit_msg>[\'\S]+) acct=%{QUOTEDSTRING:audit_acct} exe=%{QUOTEDSTRING:audit_exe} hostname=(?<audit_hostname>\?|%{IPORHOST}) addr=(?<audit_addr>\?|%{IPORHOST}) terminal=%{TTY:audit_terminal} res=%{WORD:audit_res}" ]
+    #         pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): arch=%{BASE16NUM:audit_arch} syscall=%{NUMBER:audit_syscall} per=%{NUMBER:audit_per} success=%{WORD:audit_success} exit=%{NUMBER:audit_exit} a0=%{NUMBER:audit_a0} a1=%{NUMBER:audit_a1} a2=%{NUMBER:audit_a2} a3=%{BASE16NUM:audit_a3} items=%{NUMBER:audit_items} ppid=%{NUMBER:audit_ppid} pid=%{NUMBER:audit_pid} auid=%{NUMBER:audit_auid} uid=%{NUMBER:audit_uid} gid=%{NUMBER:audit_gid} euid=%{NUMBER:euid} suid=%{NUMBER:suid} fsuid=%{NUMBER:fsuid} egid=%{NUMBER:egid} sgid=%{NUMBER:sgid} fsgid=%{NUMBER:
+    #         ty=(?<audit_tty>\(none\)|%{TTY}) ses=%{NUMBER:audit_ses} comm=%{QUOTEDSTRING:audit_comm} exe=%{QUOTEDSTRING:audit_exe} subj=(?<audit_subj>[\w:\.-]+\b) key=%{QUOTEDSTRING:audit_key}" ]
+    #         add_tag => "grokked"
+    #     }
+
+    #     date {
+    #         match => [ "audit_epoch" , "UNIX_MS" ]
+    #         add_tag => "dated"
+    #     }
+    # }
+
+
+    # --- Postfix logs --- #
+    if "postfix" in [tags] or "dkimproxy.out" in [tags] {
+        kv {
+            trim => "<>,"
+        }
+
+        mutate {
+            add_field => {
+                "_ttl" => "10d"
+            }
+        }
+
+        if "postfix" in [tags] {
+            grok {
+                match => [ "message" , "postfix/%{DATA:subprogram}\[" ]
+                add_tag => [ "grokked" ]
+            }
+        }
+    }
+
+    # --- Nginx logs --- #
+    if [type] == "nginx-access" {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "(?m)%{NGINX_ROYALL}" ]
+            add_tag => [ "grokked", "share_eng" ]
+        }
+
+        if [us] {
+            grok {
+                match => [ "us" , "%{UPSTREAMS}" ]
+                add_tag => "upstream_grok"
+                tag_on_failure => [ "upstreams_grokparsefail" ]
+            }
+        }
+
+        useragent { source => "agent" }
+
+        geoip {
+            source => "clientip"
+            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+        }
+    }
+
+    if [type] == "nginx-error" {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "(?m)%{NGINX_ERROR}" ]
+            add_tag => [ "grokked" , "share_eng" ]
+        }
+
+        geoip {
+            source => "clientip"
+            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+        }
+    }
+
+    if "_grokparsefailure" not in [tags] {
+
+        # Extract first folder after domain
+        if ("nginx" in [tags]) and ([request] =~ /\/.*\//) {
+            grok {
+                match => ["request", "/%{DATA:folder}/"]
+            }
+        }
+
+        if ("nginx" in [tags]) and ([request] =~ /\/([a-zA-Z0-9._-]+(\?\S+)?$)/) {
+
+            # Extract filename and extension
+            grok { match => [ "request" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))" ] }
+
+            if [filename] and [filename] =~ /\./ {
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
+            }
+        }
+    }
+
+    if "nginx" in [tags] {
+        date {
+            match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" , "yyyy/MM/dd HH:mm:ss" ]
+            add_tag => "dated"
+        }
+
+        # Remove timestamp fields because it confuses ES
+        mutate { remove_field => [ "timestamp" ] }
+    }
+
+
+    # --- Syslogs --- #
+    if "sudo" in [tags] {
+        if "authfail" in [tags] {
+            kv {}
+            mutate {
+                rename => [ "ruser" , "sudoer" ]
+            }
+        } else {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [
+                    "message" , "%{SYSLOGTIMESTAMP} sudo:%{SPACE}%{USER:sudoer} : (\(command continued\) %{GREEDYDATA:command}|TTY=%{DATA:tty} ; PWD=%{PATH:pwd} ; USER=%{USER:user} ; COMMAND=%{GREEDYDATA:command})",
+                    "message" , "%{SYSLOGTIMESTAMP} sudo:%{SPACE}%{USER:sudoer} : %{DATA} ; TTY=%{DATA:tty} ; PWD=%{PATH:pwd} ; USER=%{USER:user} ; COMMAND=%{GREEDYDATA:command}"
+                ]
+                add_tag => "grokked"
+                tag_on_failure => [ "_grokparsefailure" , "sudo_grok_fail"]
+            }
+        }
+    }
+
+
+    if ("sshd" in [tags]) and ("session" in [tags]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "session (opened|closed) for user %{USER:user}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("sshd" in [tags]) and ("authfail" in [tags]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "(rhost=%{IPORHOST:host}%{SPACE}user=%{USER:user})|(?i:invalid user %{USER:user})|(Failed password for (invalid user %{USER:user}|%{USER:user}) from %{IPORHOST:authfail_host})|(Too many authentication failures for %{USER:user})" ]
+            add_tag => "grokked"
+        }
+    }
+
+    # TACACS
+    if "tac_plus" in [tags] {
+
+        # Drop noisy connect messages
+        if "connect from" in [message] {
+            drop {}
+        }
+
+        # Grab key values but exclude cmd because kv doesn't get the whole command
+        kv {
+            exclude_keys => [ "cmd" ]
+        }
+
+        if "check pass" not in [message] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [  "message" , "%{TACPLUS}",
+                            "message" , "%{TACPLUS_LOGIN_FAIL}",
+                            "message" , "%{TACPLUS_ERROR}",
+                            "message" , "error retrieving information about user %{USER:user}",
+                            "message" , "auth could not identify password for \[%{USER:user}\]"
+                ]
+            }
+        }
+
+        if "cmd=" in [message] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "%{TACCMD}" ]
+            }
+        }
+
+    }
+
+    # BackupPC
+    if "backuppc" in [tags] {
+        grok {
+            match => [ "message" , "%{TIMESTAMP_ISO8601:timestamp} %{GREEDYDATA:message}" ]
+            add_tag => "grokked"
+        }
+
+        date {
+            match => [ "timestamp" , "ISO8601" , "yyyy-MM-dd HH:mm:ss" ]
+            add_tag => "dated"
+        }
+    }
+
+
+    # --- Eventlogs --- #
+    if [type] == "eventlog" {
+        date {
+            match => [  "EventTime" , "YYYY-MM-dd HH:mm:ss" ]
+            timezone => "America/New_York"
+        }
+
+        mutate {
+            rename => [ "AccountName", "user" ]
+            rename => [ "AccountType", "[eventlog][account_type]" ]
+            rename => [ "ActionName", "[eventlog][action_name]" ]
+            rename => [ "ActivityId", "[eventlog][activity_id]" ]
+            rename => [ "ActivityID", "[eventlog][activity_id]" ]
+            rename => [ "Address", "ip6" ]
+            rename => [ "ApplicationPath", "[eventlog][application_path]" ]
+            rename => [ "AuthenticationPackageName", "[eventlog][authentication_package_name]" ]
+            rename => [ "Category", "[eventlog][category]" ]
+            rename => [ "Channel", "[eventlog][channel]" ]
+            rename => [ "DiagnosticModuleImageName", "[eventlog][diagnostic_module_image_name]" ]
+            rename => [ "Domain", "domain" ]
+            rename => [ "EventID", "[eventlog][event_id]" ]
+            rename => [ "EventType", "[eventlog][event_type]" ]
+            rename => [ "File", "[eventlog][file_path]" ]
+            rename => [ "Guid", "[eventlog][guid]" ]
+            rename => [ "Hostname", "hostname" ]
+            rename => [ "Interface", "[eventlog][interface]" ]
+            rename => [ "InterfaceGuid", "[eventlog][interface_guid]" ]
+            rename => [ "InterfaceName", "[eventlog][interface_name]" ]
+            rename => [ "IpAddress", "ip" ]
+            rename => [ "IpPort", "port" ]
+            rename => [ "Key", "[eventlog][key]" ]
+            rename => [ "LogonGuid", "[eventlog][logon_guid]" ]
+            rename => [ "Message", "message" ]
+            rename => [ "ModifyingUser", "[eventlog][modifying_user]" ]
+            rename => [ "NewProfile", "[eventlog][new_profile]" ]
+            rename => [ "OldProfile", "[eventlog][old_profile]" ]
+            rename => [ "Port", "port" ]
+            rename => [ "PrivilegeList", "[eventlog][privilege_list]" ]
+            rename => [ "ProcessID", "pid" ]
+            rename => [ "ProcessName", "[eventlog][process_name]" ]
+            rename => [ "ProviderGuid", "[eventlog][provider_guid]" ]
+            rename => [ "ReasonCode", "[eventlog][reason_code]" ]
+            rename => [ "RecordNumber", "[eventlog][record_number]" ]
+            rename => [ "ScenarioId", "[eventlog][scenario_id]" ]
+            rename => [ "Severity", "level" ]
+            rename => [ "SeverityValue", "[eventlog][severity_code]" ]
+            rename => [ "SourceModuleName", "nxlog_input" ]
+            rename => [ "SourceName", "[eventlog][program]" ]
+            rename => [ "SubjectDomainName", "[eventlog][subject_domain_name]" ]
+            rename => [ "SubjectLogonId", "[eventlog][subject_logonid]" ]
+            rename => [ "SubjectUserName", "[eventlog][subject_user_name]" ]
+            rename => [ "SubjectUserSid", "[eventlog][subject_user_sid]" ]
+            rename => [ "System", "[eventlog][system]" ]
+            rename => [ "TargetDomainName", "[eventlog][target_domain_name]" ]
+            rename => [ "TargetLogonId", "[eventlog][target_logonid]" ]
+            rename => [ "TargetUserName", "[eventlog][target_user_name]" ]
+            rename => [ "TargetUserSid", "[eventlog][target_user_sid]" ]
+            rename => [ "TaskName", "[eventlog][task_name]" ]
+            rename => [ "TaskInstanceId", "[task_instance_id]" ]
+            rename => [ "ThreadID", "thread" ]
+            rename => [ "param1" , "[eventlog][program]" ]
+            rename => [ "param2" , "[eventlog][state]" ]
+
+            lowercase => [ "[eventlog][event_type]" ]
+        }
+
+        mutate {
+            remove_field => [
+                        "CurrentOrNextState",
+                        "DiagnosticModuleId",
+                        "Description",
+                        "EventReceivedTime",
+                        "EventTime",
+                        "EventTimeWritten",
+                        "InstanceId",
+                        "IPVersion",
+                        "KeyLength",
+                        "Keywords",
+                        "LmPackageName",
+                        "LogonProcessName",
+                        "LogonType",
+                        "Name",
+                        "Opcode",
+                        "OpcodeValue",
+                        "OriginalActivityId",
+                        "PolicyProcessingMode",
+                        "Protocol",
+                        "ProtocolType",
+                        "SourceModuleType",
+                        "State",
+                        "Task",
+                        "TransmittedServices",
+                        "Type",
+                        "UserID",
+                        "Version"
+            ]
+        }
+
+        # Extract source IP and source port from [host] field
+        grok { match => [ "host" , "%{IP:source_ip}:%{INT:source_port}" ] }
+
+        if [hostname] =~ /^[a-zA-Z].*\./ {
+            mutate { rename => [ "hostname" , "fqdn" ] }
+            grok   {
+                match  => [ "fqdn" , "%{DATA:host}\.%{HOST:domain}$" ]
+                overwrite => [ "host" ]
+                overwrite => [ "domain" ]
+            }
+        }
+    }
+
+
+    # --- Aerohive --- #
+
+    # Change IP in host field to friendly hostname
+    if "aerohive" in [tags] {
+        grok { match => [ "host" , "192\.168\.40\.%{INT:last_octet}" ] }
+
+        if [last_octet] == "155" {
+            mutate {
+                replace => [ "host" , "AP330-%{last_octet}" ]
+            }
+        } else {
+            mutate {
+                replace => [ "host" , "AP121-%{last_octet}" ]
+            }
+        }
+
+        mutate { remove_field => [ "last_octet" ] }
+    }
+
+    # Extract IP, station, hostname, BSSID, etc.
+    if ("aerohive" in [tags]) and ("ah_rt_sta_update_hostname:" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_rt_sta_update_hostname: %{AEROHIVEMAC:station}\(hostname=%{DATA:hostname}\)" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ("ah_rt_sta_update_ip:" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_rt_sta_update_ip: %{AEROHIVEMAC:station}\(ip=%{IP:clientip}\)" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ("ah_rt_sta_update_ip_hostname:" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_rt_sta_update_ip_hostname: %{AEROHIVEMAC:station} ip=%{IP:clientip}, hostname=%{GREEDYDATA:hostname}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ("ah_auth: ah_rt_sta_add:" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: ah_rt_sta_add: %{AEROHIVEMAC:station}\(ip=%{IP:clientip}\), username %{GREEDYDATA:user} on %{GREEDYDATA:interface}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ("detect station" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , " ah_auth: detect station\(%{AEROHIVEMAC:station}\) os\(%{DATA:os}\) via DHCP fingerprint" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ([message] =~ /is (de-)?authenticated (to|from)/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: Station %{AEROHIVEMAC:station} is (de-)?authenticated (to|from) %{AEROHIVEMAC:bssid} thru SSID %{GREEDYDATA:ssid}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ([message] =~ /ah_auth: Station ([A-Fa-f0-9]{4}:){2}[A-Fa-f0-9]{4} ip/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: Station %{AEROHIVEMAC:station} ip %{IP:clientip} username %{DATA:user} hostname %{DATA:hostname} OS %{GREEDYDATA:os}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ([message] =~ /ah_auth: sta [A-Fa-f0-9]{4}/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: sta %{AEROHIVEMAC:station} is disassociated from %{AEROHIVEMAC:bssid}\(%{DATA:interface}\) in driver" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ([message] =~ /ah_auth: Notify driver to disassoc [A-Fa-f0-9]{4}/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: Notify driver to disassoc %{AEROHIVEMAC:station} from %{GREEDYDATA:interface}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ([message] =~ /receive driver notification/) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "receive driver notification\[%{DATA}, %{WORD:event}\] for Sta\[%{AEROHIVEMAC:station}\] at Hapd\[%{AEROHIVEMAC:bssid}, %{GREEDYDATA:interface}\]" ]
+            add_tag => "grokked"
+        }
+    }
+
+     if ("aerohive" in [tags]) and ("pmksa_cache_auth_add" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "ah_auth: pmksa_cache_auth_add: own_addr %{AEROHIVEMAC:bssid}, sta %{AEROHIVEMAC:station}, %{INT}, username %{GREEDYDATA:user}" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if ("aerohive" in [tags]) and ("L2 DoS" in [message]) {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "L2 DoS: interface %{NOTSPACE:interface}\(%{DATA:ssid}\) station %{AEROHIVEMAC:station}:" ]
+            add_tag => [ "grokked" , "l2dos" ]
+        }
+    }
+
+    # --- IIS --- #
+
+    if "iis" in [tags] {
+        # Drop comment lines from IIS
+        if [message] =~ /^#/ {
+            drop {}
+        }
+
+        if "iis5" in [tags] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => ["message", "%{IIS5}"]
+                add_tag => [ "grokked" ]
+            }
+        }
+
+        if "iis6" in [tags] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => ["message", "%{IIS6}"]
+                add_tag => [ "grokked" ]
+            }
+        }
+
+        # Change '+' to ' ' since IIS uses '+' as a delimeter in the
+        # user agent string
+        mutate {
+            gsub => [ agent , "\+" , " " ]
+        }
+
+        useragent { source => "agent" }
+
+        geoip {
+            source => "clientip"
+            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+        }
+
+        # Extract first folder after domain
+        if [request] =~ /\/.*\// {
+            grok {
+                match => ["request", "/%{DATA:folder}/"]
+            }
+        }
+
+        if "_grokparsefailure" not in [tags] {
+            date {
+                match => [ "eventtime",
+                    "yy-MM-dd HH:mm:ss",
+                    "yyyy-MM-dd HH:mm:ss"
+                ]
+                add_tag => "dated"
+                remove_field => [ "eventtime" ]
+            }
+        }
+    }
+
+    # --- Exchange --- #
+
+    if "exchange" in [tags] {
+        # Drop comment and blank lines
+        if [message] =~ /(^#)|(^$)/ {
+            drop {}
+        }
+
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => ["message", "%{EXCHANGELOGS}"]
+            add_tag => [ "grokked" ]
+        }
+
+        # Take tabs out of timestamp
+        mutate {
+            gsub => [ "eventtime" , "\t", " " ]
+        }
+
+        date {
+            match => [ "eventtime" , "yyyy-M-d H:m:s z" ]
+            add_tag => "dated"
+            remove_field => [ "eventtime" ]
+        }
+    }
+
+    # --- Logstash logs --- #
+    if "logstash" in [tags] {
+
+        grok {
+            match => [ "message" , "{:timestamp=>%{QS:eventtime}, :message=>%{QS:message}, :level=>:%{WORD:level}}" ]
+            add_tag => [ "grokked" ]
+        }
+
+        if "_grokparsefailure" not in [tags] {
+            date {
+                match => [ "eventtime" , "ISO8601" ]
+                add_tag => "dated"
+                remove_field => [ "eventtime" ]
+            }
+        }
+    }
+
+    # --- Nessus logs --- #
+    if "nessus" in [tags] {
+        grok {
+            match => [ "message" , "\[%{DATA:timestamp}\]\[%{DATA}\]( \[%{DATA:program}\])? %{GREEDYDATA:syslog_message}" ]
+            add_tag => [ "grokked" ]
+        }
+        if [syslog_message] =~ /(?i:logged out)|(?i:login)/ {
+            grok {
+                match => [
+                    "syslog_message" , "([Uu]ser|login of) \'%{USERNAME:user}\'( by %{USERNAME:user})?( from %{IP:source_ip})?" ,
+                    "syslog_message" , "User %{USERNAME:user} \(%{IP:source_ip}\) successfully logged out"
+                ]
+                tag_on_failure => [ "_grokparsefailure" , "nessus_user_grokfail"]
+            }
+        }
+
+        if "_grokparsefailure" not in [tags] {
+            date {
+                match => [ "timestamp",
+                    "EEE MMM  d HH:mm:ss yyyy",
+                    "EEE MMM dd HH:mm:ss yyyy"
+                ]
+                add_tag => "dated"
+            }
+        }
+    }
+
+    # --- ASA logs --- #
+
+    if [program] =~ /ASA/ {
+
+        grok {
+            match => [
+              "message", "%{CISCO_DIRECTION:direction} %{WORD:protocol} connection %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{NOTSPACE:dst_ip}/%{INT:dst_port} flags %{GREEDYDATA:tcp_flags} on interface %{GREEDYDATA:interface}",
+              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{NOTSPACE:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})",
+              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{NOTSPACE:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)",
+              "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{WORD:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{IP:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group %{DATA:policy_id} \[%{DATA:hashcode1}, %{DATA:hashcode2}\]",
+              "message", "%{CISCOFW106001}",
+              "message", "%{CISCOFW106006_106007_106010}",
+              "message", "%{CISCOFW106014}",
+              "message", "%{CISCOFW106015}",
+              "message", "%{CISCOFW106021}",
+              "message", "%{CISCOFW106023}",
+              "message", "%{CISCOFW106100}",
+              "message", "%{CISCOFW110002}",
+              "message", "%{CISCOFW302010}",
+              "message", "%{CISCOFW302013_302014_302015_302016}",
+              "message", "%{CISCOFW302020_302021}",
+              "message", "%{CISCOFW305011}",
+              "message", "%{CISCOFW313001_313004_313008}",
+              "message", "%{CISCOFW313005}",
+              "message", "%{CISCOFW402117}",
+              "message", "%{CISCOFW402119}",
+              "message", "%{CISCOFW419001}",
+              "message", "%{CISCOFW419002}",
+              "message", "%{CISCOFW500004}",
+              "message", "%{CISCOFW602303_602304}",
+              "message", "%{CISCOFW710001_710002_710003_710005_710006}",
+              "message", "%{CISCOFW713172}",
+              "message", "%{CISCOFW733100}"
+            ]
+        }
+
+    }
+
+}
+
+output {
+
+    elasticsearch {
+        bind_host => "{{ ansible_default_ipv4.address }}"
+        cluster => "{{ es_cluster_name }}"
+        node_name => "{{ ansible_hostname }}"
+        port => "9500-9600"
+        flush_size => 500
+    }
+}

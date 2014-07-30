@@ -1,0 +1,2 @@
+APCEVENT %{DATE:date}\t%{TIME:timestamp}\t%{DATA:message}\t%{BASE16NUM:eventcode}
+APCDATA %{DATE:date}\t%{TIME:timestamp}\t%{NUMBER:vmin:float}\t%{NUMBER:vmax:float}\t%{NUMBER:vout:float}\t%{NUMBER:wout:float}\t%{NUMBER:freq:float}\t%{NUMBER:percentcap:float}\t%{NUMBER:vbat:float}\t%{NUMBER:tupsc:float}
