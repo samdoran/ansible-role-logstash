@@ -112,6 +112,64 @@ filter {
         }
     }
 
+    # --- Apache logs --- #
+    if [type] == "apache-access" {
+
+        # If the line is an error log, add the tag 'error', remove the tag 'access', and change the type to 'apache-error'
+        # This was due to a bug in the rsyslog config that combined error and access logs
+        #
+        if [message] =~ /^ \[/ {
+            mutate {
+                remove_tag => [ "access" ]
+                add_tag => [ "error" ]
+                replace => [ "type" , "apache-error" ]
+            }
+        }
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [
+                "message" , "%{COMBINEDAPACHELOG}"
+
+                # There was a bug in the rsyslog shipping configuration that put both Apache access and error
+                # logs into one file. To ingest these old logs properly, I have the Apache error grok filter
+                # here with the Apache access logs. This is only needed for ingesting old logs that both access
+                # and error logs. This can be removed in the future.
+                #
+                # "message" , "\[(?<timestamp>%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR})\] \[%{WORD:[apache][severity]}\] (\[client %{IP:clientip}\])?"
+            ]
+            add_tag => [ "grokked_apache-access" , "share_eng" ]
+        }
+
+        useragent { source => "agent" }
+
+        # Don't bother with geoip if the client is a private IP
+        if [clientip] !~ /(^127\.0\.0\.1)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/ {
+            geoip {
+                source => "clientip"
+                database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+            }
+        }
+    }
+
+    if [type] == "apache-error" {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "\[(?<timestamp>%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR})\] \[%{WORD:[apache][severity]}\] (\[client %{IP:clientip}\])?" ]
+            add_tag => [ "grokked_apache-error" , "share_eng" ]
+        }
+    }
+
+    if "apache" in [tags] {
+        date {
+            match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" , "yyyy/MM/dd HH:mm:ss" , "EEE MMM dd HH:mm:ss yyyy" ]
+            add_tag => "dated_apache"
+        }
+
+        # Remove timestamp fields because it confuses ES
+        mutate { remove_field => [ "timestamp" ] }
+    }
+
+
     # --- Nginx logs --- #
     if [type] == "nginx-access" {
         grok {
@@ -152,13 +210,13 @@ filter {
     if "_grokparsefailure" not in [tags] {
 
         # Extract first folder after domain
-        if ("nginx" in [tags]) and ([request] =~ /\/.*\//) {
+        if ("nginx" or "apache" in [tags]) and ([request] =~ /\/.*\//) {
             grok {
                 match => ["request", "/%{DATA:folder}/"]
             }
         }
 
-        if ("nginx" in [tags]) and ([request] =~ /\/([a-zA-Z0-9._-]+(\?\S+)?$)/) {
+        if ("nginx" or "apache" in [tags]) and ([request] =~ /\/([a-zA-Z0-9._-]+(\?\S+)?$)/) {
 
             # Extract filename and extension
             grok { match => [ "request" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))" ] }
