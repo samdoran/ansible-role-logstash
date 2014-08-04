@@ -1,4 +1,4 @@
-Role Name
+Logstash
 ========
 
 Setup logstash shipping and parsing nodes. Two groups, `ls_parser` and `ls_shipper` should contain the appropriate hosts. The `ls_shipper` host takes files as input, does minimal processing, then outputs to redis. The `ls_parser` hosts take input from redis, process, then output to an elasticsearch cluster.
