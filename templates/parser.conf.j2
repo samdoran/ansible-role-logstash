@@ -125,18 +125,10 @@ filter {
                 replace => [ "type" , "apache-error" ]
             }
         }
+
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [
-                "message" , "%{COMBINEDAPACHELOG}"
-
-                # There was a bug in the rsyslog shipping configuration that put both Apache access and error
-                # logs into one file. To ingest these old logs properly, I have the Apache error grok filter
-                # here with the Apache access logs. This is only needed for ingesting old logs that both access
-                # and error logs. This can be removed in the future.
-                #
-                # "message" , "\[(?<timestamp>%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR})\] \[%{WORD:[apache][severity]}\] (\[client %{IP:clientip}\])?"
-            ]
+            match => [ "message" , "%{COMBINEDAPACHELOG}" ]
             add_tag => [ "grokked_apache-access" , "share_eng" ]
         }
 
