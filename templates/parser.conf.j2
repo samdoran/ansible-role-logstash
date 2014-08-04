@@ -113,8 +113,12 @@ filter {
     }
 
     # --- Apache logs --- #
-    if [type] == "apache-access" {
+    if "apache" in [tags] {
+        # Drop stdout from processes run by apache
+        if [message] =~ /^\s*\b\w+\b:/ { drop {} }
+    }
 
+    if [type] == "apache-access" {
         # If the line is an error log, add the tag 'error', remove the tag 'access', and change the type to 'apache-error'
         # This was due to a bug in the rsyslog config that combined error and access logs
         #
@@ -125,6 +129,9 @@ filter {
                 replace => [ "type" , "apache-error" ]
             }
         }
+    }
+
+    if [type] == "apache-access" {
 
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
@@ -146,7 +153,7 @@ filter {
     if [type] == "apache-error" {
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "\[(?<timestamp>%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR})\] \[%{WORD:[apache][severity]}\] (\[client %{IP:clientip}\])?" ]
+            match => [ "message" , "\[(?<timestamp>%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR})\] \[%{WORD:severity}\] (\[client %{IP:clientip}\])?" ]
             add_tag => [ "grokked_apache-error" , "share_eng" ]
         }
     }
