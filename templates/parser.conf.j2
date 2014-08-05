@@ -354,6 +354,21 @@ filter {
         }
     }
 
+    # Mongo
+    if "mongo" in [tags] {
+        grok {
+            match => [ "message" , "(?<timestamp>%{DAY} %{MONTH} %{MONTHDAY} %{TIME}) \[%{DATA:session}\]" ]
+            add_tag => "grokked"
+        }
+    }
+
+    if "mongo" in [tags] {
+        date {
+            match => [ "timestamp" , "EEE MMM dd HH:mm:ss.SSS" ]
+            add_tag => "dated"
+        }
+    }
+
 
     # --- Eventlogs --- #
     if [type] == "eventlog" {
