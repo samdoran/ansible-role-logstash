@@ -259,6 +259,10 @@ filter {
 
 
     if "sshd" in [tags] {
+        if [message] =~ /(subsystem request|sent status)/ {
+            drop {}
+        }
+
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
             match => [
@@ -269,8 +273,10 @@ filter {
                 "message" , "open %{QS:filepath}",
                 "message" , "(closedir|opendir) %{QS:filepath}",
                 "message" , "set %{QS:filepath}",
-                "message" , "Accepted publickey for %{USER:user} from %{IP:clientip}",
-                "message" , "rename old %{QS:[filepath][old]} new %{QS:filepath}"
+                "message" , "Accepted (publickey|password) for %{USER:user} from %{IP:clientip}",
+                "message" , "rename old %{QS:[filepath][old]} new %{QS:filepath}",
+                "message" , "Connection closed by %{IP:clientip}",
+                "message" , "%{GREEDYDATA:message}"
             ]
             add_tag => "grokked"
         }
