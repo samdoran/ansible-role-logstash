@@ -117,6 +117,28 @@ input {
         type => "syslog"
     }
 
+    # mongod logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/mongod/mongod*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_mongod"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "mongo" , "mongod" ]
+        type => "syslog"
+    }
+
+    # mongos logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/mongos/mongos*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_mongos"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "mongo" , "mongos" ]
+        type => "syslog"
+    }
+
     # file {
     #     path => "/var/log/remote/cwa/W3SVC*/*.log"
     #     sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
