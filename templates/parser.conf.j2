@@ -258,20 +258,53 @@ filter {
     }
 
 
-    if ("sshd" in [tags]) and ("session" in [tags]) {
+    if "sshd" in [tags] {
+        if [message] =~ /(subsystem request|sent status)/ {
+            drop {}
+        }
+
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "session (opened|closed) for user %{USER:user}" ]
+            match => [
+                "message" , "(rhost=%{IPORHOST:host}%{SPACE}user=%{USER:user})|(?i:invalid user %{USER:user})|(Failed password for (invalid user %{USER:user}|%{USER:user}) from %{IPORHOST:authfail_host})|(Too many authentication failures for %{USER:user})",
+                "message" , "session (opened|closed) for (local )?user %{USER:user}( from \[%{IP:clientip}\])?",
+                "message" , "Received disconnect from %{IP:clientip}",
+                "message" , "close %{QS:filepath} bytes read %{INT:[bytes][read]} written %{INT:[bytes][written]}",
+                "message" , "open %{QS:filepath}",
+                "message" , "(closedir|opendir) %{QS:filepath}",
+                "message" , "set %{QS:filepath}",
+                "message" , "Accepted (publickey|password) for %{USER:user} from %{IP:clientip}",
+                "message" , "rename old %{QS:[filepath][old]} new %{QS:filepath}",
+                "message" , "Connection closed by %{IP:clientip}",
+                "message" , "%{GREEDYDATA:message}"
+            ]
             add_tag => "grokked"
+        }
+
+        if [filepath] {
+            # Remove trailing and leading quotes
+            mutate {
+                gsub => [
+                    "filepath" , "\"" , "",
+                    "[filepath][old]" , "\"" , ""
+                ]
+            }
+
+            # Extract folder, filename, and extension
+            grok {
+                match => [
+                    "filepath" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))",
+                    "[filepath][old]" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))"
+                ]
+            }
+        }
+
+        if [filename] and [filename] =~ /\./ {
+            grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
         }
     }
 
     if ("sshd" in [tags]) and ("authfail" in [tags]) {
-        grok {
-            patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "(rhost=%{IPORHOST:host}%{SPACE}user=%{USER:user})|(?i:invalid user %{USER:user})|(Failed password for (invalid user %{USER:user}|%{USER:user}) from %{IPORHOST:authfail_host})|(Too many authentication failures for %{USER:user})" ]
-            add_tag => "grokked"
-        }
     }
 
     # TACACS
@@ -319,6 +352,32 @@ filter {
             match => [ "timestamp" , "ISO8601" , "yyyy-MM-dd HH:mm:ss" ]
             add_tag => "dated"
         }
+    }
+
+    # Mongo
+    if "mongo" in [tags] {
+        grok {
+            match => [ "message" , "%{DAY}%{SPACE}(?<eventtime>%{MONTH}%{SPACE}%{MONTHDAY}%{SPACE}%{TIME})%{SPACE}(\[%{DATA:session}\])?" ]
+            add_tag => "grokked"
+        }
+
+        if [domain] == "royall.com" {
+            date {
+                match => [ "eventtime" , "MMM dd HH:mm:ss.SSS" , "MMM  d HH:mm:ss.SSS" , "MMM dd HH:mm:ss" , "MMM  d HH:mm:ss" ]
+                timezone => "America/New_York"
+                add_tag => "dated"
+            }
+        }
+
+        if [domain] == "hermanhq.com" {
+            date {
+                match => [ "eventtime" , "MMM dd HH:mm:ss.SSS" , "MMM  d HH:mm:ss.SSS" , "MMM dd HH:mm:ss" , "MMM  d HH:mm:ss" ]
+                timezone => "UTC"
+                add_tag => "dated"
+            }
+        }
+
+        mutate { remove_field => [ "eventtime" ] }
     }
 
 
