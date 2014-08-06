@@ -170,63 +170,60 @@ filter {
 
 
     # --- Nginx logs --- #
-    if [type] == "nginx-access" {
-        grok {
-            patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "(?m)%{NGINX_ROYALL}" ]
-            add_tag => [ "grokked", "share_eng" ]
-        }
-
-        if [us] {
+    if "nginx" in [tags] {
+        if [type] == "nginx-access" {
             grok {
-                match => [ "us" , "%{UPSTREAMS}" ]
-                add_tag => "upstream_grok"
-                tag_on_failure => [ "upstreams_grokparsefail" ]
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "(?m)%{NGINX_ROYALL}" ]
+                add_tag => [ "grokked", "share_eng" ]
+            }
+
+            if [us] {
+                grok {
+                    match => [ "us" , "%{UPSTREAMS}" ]
+                    add_tag => "upstream_grok"
+                    tag_on_failure => [ "upstreams_grokparsefail" ]
+                }
+            }
+
+            useragent { source => "agent" }
+
+            geoip {
+                source => "clientip"
+                database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
             }
         }
 
-        useragent { source => "agent" }
-
-        geoip {
-            source => "clientip"
-            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
-        }
-    }
-
-    if [type] == "nginx-error" {
-        grok {
-            patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "(?m)%{NGINX_ERROR}" ]
-            add_tag => [ "grokked" , "share_eng" ]
-        }
-
-        geoip {
-            source => "clientip"
-            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
-        }
-    }
-
-    if "_grokparsefailure" not in [tags] {
-
-        # Extract first folder after domain
-        if ("nginx" or "apache" in [tags]) and ([request] =~ /\/.*\//) {
+        if [type] == "nginx-error" {
             grok {
-                match => ["request", "/%{DATA:folder}/"]
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "(?m)%{NGINX_ERROR}" ]
+                add_tag => [ "grokked" , "share_eng" ]
+            }
+
+            geoip {
+                source => "clientip"
+                database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
             }
         }
 
-        if ("nginx" or "apache" in [tags]) and ([request] =~ /\/([a-zA-Z0-9._-]+(\?\S+)?$)/) {
+        if "_grokparsefailure" not in [tags] {
 
-            # Extract filename and extension
-            grok { match => [ "request" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))" ] }
+            # Extract folder
+            if [request] =~ /\/.*\// {
+                grok { match => [ "request", "^/%{DATA:folder}/" ] }
+            }
 
+            # Extract filename
+            if [request] =~ /^(\/.*?)+\/(.*?)$/
+                grok { match => [ "request" , "^(/%{DATA})+/%{DATA:filename}$" ] }
+
+            # Extract extension
             if [filename] and [filename] =~ /\./ {
                 grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
             }
         }
-    }
 
-    if "nginx" in [tags] {
         date {
             match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" , "yyyy/MM/dd HH:mm:ss" ]
             add_tag => "dated"
