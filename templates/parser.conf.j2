@@ -290,12 +290,17 @@ filter {
                 ]
             }
 
-            # Extract folder, filename, and extension
+            # Extract filename and extension
             grok {
                 match => [
                     "filepath" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))",
                     "[filepath][old]" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))"
                 ]
+            }
+
+            # Extract folder
+            grok {
+                match => ["filepath", "/%{DATA:folder}/"]
             }
         }
 
