@@ -117,7 +117,7 @@ input {
         type => "syslog"
     }
 
-    # # mongod logs in their raw format, local0
+    # mongod logs in their raw format, local0
     file {
         path => "/var/log/remote/**/mongod/mongod*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_mongod"
@@ -132,7 +132,7 @@ input {
         type => "syslog"
     }
 
-    # # mongos logs in their raw format, local0
+    # mongos logs in their raw format, local0
     file {
         path => "/var/log/remote/**/mongos/mongos*.raw.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_mongos"
