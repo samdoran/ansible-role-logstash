@@ -159,6 +159,24 @@ filter {
     }
 
     if "apache" in [tags] {
+        if "_grokparsefailure" not in [tags] {
+
+            # Extract folder
+            if [request] =~ /\/.*\// {
+                grok { match => [ "request", "^/%{DATA:folder}/" ] }
+            }
+
+            # Extract filename
+            if [request] =~ /^(\/.*?)+\/(.*?)$/ {
+                grok { match => [ "request" , "^(/%{DATA})+/%{DATA:filename}$" ] }
+            }
+
+            # Extract extension
+            if [filename] and [filename] =~ /\./ {
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ] }
+            }
+        }
+
         date {
             match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" , "yyyy/MM/dd HH:mm:ss" , "EEE MMM dd HH:mm:ss yyyy" ]
             add_tag => "dated_apache"
@@ -215,12 +233,13 @@ filter {
             }
 
             # Extract filename
-            if [request] =~ /^(\/.*?)+\/(.*?)$/
+            if [request] =~ /^(\/.*?)+\/(.*?)$/ {
                 grok { match => [ "request" , "^(/%{DATA})+/%{DATA:filename}$" ] }
+            }
 
             # Extract extension
             if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ] }
             }
         }
 
