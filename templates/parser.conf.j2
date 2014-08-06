@@ -290,23 +290,25 @@ filter {
                 ]
             }
 
-            # Extract filename and extension
+            # Extract folder
+            grok {
+                match => [ "filepath", "^/%{DATA:folder}/" ]
+            }
+
+            # Extract filename
             grok {
                 match => [
-                    "filepath" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))",
-                    "[filepath][old]" , "/(%{USERNAME:filename}$|(%{USERNAME:filename}\?%{NOTSPACE}$))"
+                    "filepath" , "^(/%{DATA})+/%{DATA:filename}$",
+                    "[filepath][old]" , "^(/%{DATA})+/%{DATA:filename}$"
                 ]
             }
 
-            # Extract folder
-            grok {
-                match => ["filepath", "/%{DATA:folder}/"]
+            # Extract extension
+            if [filename] and [filename] =~ /\./ {
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
             }
         }
 
-        if [filename] and [filename] =~ /\./ {
-            grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
-        }
     }
 
     if ("sshd" in [tags]) and ("authfail" in [tags]) {
