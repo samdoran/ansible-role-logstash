@@ -357,15 +357,24 @@ filter {
     # Mongo
     if "mongo" in [tags] {
         grok {
-            match => [ "message" , "%{DAY}%{SPACE}(?<eventtime>%{MONTH}%{SPACE}%{MONTHDAY}%{SPACE}%{TIME})%{SPACE}\[%{DATA:session}\]" ]
+            match => [ "message" , "%{DAY}%{SPACE}(?<eventtime>%{MONTH}%{SPACE}%{MONTHDAY}%{SPACE}%{TIME})%{SPACE}(\[%{DATA:session}\])?" ]
             add_tag => "grokked"
         }
-    }
 
-    if "mongo" in [tags] {
-        date {
-            match => [ "eventtime" , "MMM dd HH:mm:ss.SSS" , "MMM  d HH:mm:ss.SSS" , "MMM dd HH:mm:ss" ]
-            add_tag => "dated"
+        if [domain] == "royall.com" {
+            date {
+                match => [ "eventtime" , "MMM dd HH:mm:ss.SSS" , "MMM  d HH:mm:ss.SSS" , "MMM dd HH:mm:ss" , "MMM  d HH:mm:ss" ]
+                timezone => "America/New_York"
+                add_tag => "dated"
+            }
+        }
+
+        if [domain] == "hermanhq.com" {
+            date {
+                match => [ "eventtime" , "MMM dd HH:mm:ss.SSS" , "MMM  d HH:mm:ss.SSS" , "MMM dd HH:mm:ss" , "MMM  d HH:mm:ss" ]
+                timezone => "UTC"
+                add_tag => "dated"
+            }
         }
 
         mutate { remove_field => [ "eventtime" ] }
