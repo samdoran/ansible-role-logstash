@@ -181,7 +181,7 @@ filter {
 
             # Extract filename
             if [request] =~ /^((\/.*?)+)?\/(.*?)$/ {
-                grok { match => [ "request" , "^(/%{DATA})+/%{DATA:filename}$" ] }
+                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:filename}($|\?)" ] }
             }
 
             # Extract extension
@@ -247,7 +247,7 @@ filter {
 
             # Extract filename
             if [request] =~ /^((\/.*?)+)?\/(.*?)$/ {
-                grok { match => [ "request" , "^(/%{DATA})+/%{DATA:filename}$" ] }
+                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:filename}($|\?)" ] }
             }
 
             # Extract extension

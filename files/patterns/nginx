@@ -25,4 +25,4 @@ US us=(-|%{GREEDYDATA:us})
 UPSTREAMS (-|(%{IP:us1_ip}:%{INT:us1_port}(, %{IP:us2_ip}:%{INT:us2_port}(, %{IP:us3_ip}:%{INT:us3_port}(, %{IP:us4_ip}:%{INT:us4_port}(, %{IP:us5_ip}:%{INT:us5_port})?)?)?)?))
 COMBINEDAPACHELOG_ROYALL %{IPORHOST:clientip} %{USER:server_name} %{USER:user} \[%{HTTPDATE:timestamp}\] "(?:%{WORD:method} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response} (?:%{NUMBER:bytes}|-) \"%{GREEDYDATA:referrer}\"(;)? \"%{GREEDYDATA:agent}\"
 
-NGINX_ROYALL %{COMBINEDAPACHELOG_ROYALL} %{RT} %{UT} %{CS} %{US}
+NGINX_ROYALL %{COMBINEDAPACHELOG_ROYALL}( %{RT} %{UT} %{CS} %{US})?
