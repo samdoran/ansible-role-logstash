@@ -186,7 +186,7 @@ filter {
 
             # Extract extension
             if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ] }
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)" ] }
             }
         }
 
@@ -252,7 +252,7 @@ filter {
 
             # Extract extension
             if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ] }
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)" ] }
             }
         }
 
@@ -334,7 +334,7 @@ filter {
 
             # Extract extension
             if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)" ]}
             }
         }
 
