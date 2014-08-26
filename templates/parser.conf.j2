@@ -91,6 +91,19 @@ filter {
     #     }
     # }
 
+    # --- SNMP Logs --- #
+    if "snmpd" in [tags] {
+        # Drop noisy messages and messages from expected SNMP query devices
+        if [message] =~ /(truncating integer)|192\.168\.35\.7|192\.168\.26\.87|192\.168\.26\.254|172\.19\.0\.7|192\.168\.65\.87|172\.16\.1\.83|127\.0\.0\.1/ { drop {} }
+
+        # Extract IP address that performed the SNMP query
+        if [message] =~ /UDP:/ {
+            grok {
+                match => [ "message" , "UDP: \[%{IP:snmp_source_ip}\]:%{INT:snmp_source_port}" ]
+            }
+        }
+    }
+
 
     # --- Postfix logs --- #
     if "postfix" in [tags] or "dkimproxy.out" in [tags] {
