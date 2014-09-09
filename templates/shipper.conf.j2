@@ -15,7 +15,7 @@ input {
     file {
         path => "/var/log/remote/**/*.syslog.json.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_syslog"
-        exclude => [ "*.gz" ]
+        exclude => [ "*.gz" , "postfix-*" , "dkimproxy\.out-*" ]
         start_position => "beginning"
         codec => "json"
         tags => [ "syslog" ]
