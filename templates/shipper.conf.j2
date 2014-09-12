@@ -190,6 +190,17 @@ input {
     #     type => "exchange"
     # }
 
+    # Cisco IOS logs
+    file {
+        path => "/var/log/remote/{10.255.255.26,10.255.255.27}/**/*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_cisco"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "cisco" , "ios" , "network" ]
+        type => "ios"
+    }
+
 }
 
 filter {
