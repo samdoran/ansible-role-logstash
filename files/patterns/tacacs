@@ -1,4 +1,4 @@
-TACCMD cmd=%{DATA:command} <cr>
+TACCMD cmd=%{DATA:command}( <cr>|$)
 TACFROM %{SPACE}%{IP:clientip}%{SPACE}%{WORD:status}
 
 TACPLUS_ERROR tac_plus\[%{INT}\]: Error %{IPORHOST:nas}
