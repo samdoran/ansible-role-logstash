@@ -292,22 +292,30 @@ filter {
             drop {}
         }
 
-        grok {
-            patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [
-                "message" , "(rhost=%{IPORHOST:host}%{SPACE}user=%{USER:user})|(?i:invalid user %{USER:user})|(Failed password for (invalid user %{USER:user}|%{USER:user}) from %{IPORHOST:authfail_host})|(Too many authentication failures for %{USER:user})",
-                "message" , "session (opened|closed) for (local )?user %{USER:user}( from \[%{IP:clientip}\])?",
-                "message" , "Received disconnect from %{IP:clientip}",
-                "message" , "close %{QS:filepath} bytes read %{INT:[bytes][read]} written %{INT:[bytes][written]}",
-                "message" , "open %{QS:filepath}",
-                "message" , "(closedir|opendir) %{QS:filepath}",
-                "message" , "set %{QS:filepath}",
-                "message" , "Accepted (publickey|password) for %{USER:user} from %{IP:clientip}",
-                "message" , "rename old %{QS:[filepath][old]} new %{QS:filepath}",
-                "message" , "Connection closed by %{IP:clientip}",
-                "message" , "%{GREEDYDATA:message}"
-            ]
-            add_tag => "grokked"
+        if "authfail" in [tags] and "logname=" in [message] {
+            kv{}
+        } else if "Read from socket failed" not in [message] {
+
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [
+                    "message" , "Did not receive identification string from %{IPORHOST:clientip}",
+                    "message" , "(?i:invalid user %{USER:user})( from %{IP:clientip})?",
+                    "message" , "(Failed password for (invalid user %{USER:user}|%{USER:user}) from %{IPORHOST:clientip} port %{INT:source_port})",
+                    "message" , "Too many authentication failures for %{USER:user}",
+                    "message" , "session (opened|closed) for (local )?user %{USER:user}( from \[%{IP:clientip}\])?",
+                    "message" , "Received disconnect from %{IP:clientip}",
+                    "message" , "close %{QS:filepath} bytes read %{INT:[bytes][read]} written %{INT:[bytes][written]}",
+                    "message" , "open %{QS:filepath}",
+                    "message" , "(closedir|opendir) %{QS:filepath}",
+                    "message" , "set %{QS:filepath}",
+                    "message" , "Accepted (publickey|password) for %{USER:user} from %{IP:clientip} port %{INT:source_port}",
+                    "message" , "rename old %{QS:[filepath][old]} new %{QS:filepath}",
+                    "message" , "Connection closed by %{IP:clientip}",
+                    "message" , "reverse mapping checking getaddrinfo for %{HOSTNAME:clienthost} \[%{IP:clientip}\]"
+                ]
+                add_tag => "grokked"
+            }
         }
 
         if [filepath] {
