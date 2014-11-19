@@ -421,7 +421,10 @@ filter {
             }
         }
 
-        mutate { remove_field => [ "eventtime" ] }
+        mutate {
+            add_field => { "program" => "mongo" }
+            remove_field => [ "eventtime" ]
+        }
     }
 
     # Samba
