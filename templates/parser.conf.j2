@@ -19,7 +19,7 @@ input {
 
 {% if ansible_hostname == "kite35" %}
     imap {
-        host => "legacy.royall.com"
+        host => "mg.royall.com"
         user => "productionroot"
         password => "{{ productionroot_password }}"
         secure => "true"
@@ -27,7 +27,7 @@ input {
         check_interval => "300"
         delete => true
         tags => [ "imap" ]
-        verify_cert => false
+        verify_cert => true
     }
 {% endif %}
 }
@@ -91,6 +91,19 @@ filter {
     #     }
     # }
 
+    # --- SNMP Logs --- #
+    if "snmpd" in [tags] {
+        # Drop noisy messages and messages from expected SNMP query devices
+        if [message] =~ /(truncating integer)|192\.168\.35\.7|192\.168\.26\.87|192\.168\.26\.254|172\.19\.0\.7|192\.168\.65\.87|172\.16\.1\.83|127\.0\.0\.1/ { drop {} }
+
+        # Extract IP address that performed the SNMP query
+        if [message] =~ /UDP:/ {
+            grok {
+                match => [ "message" , "UDP: \[%{IP:snmp_source_ip}\]:%{INT:snmp_source_port}" ]
+            }
+        }
+    }
+
 
     # --- Postfix logs --- #
     if "postfix" in [tags] or "dkimproxy.out" in [tags] {
@@ -106,7 +119,7 @@ filter {
 
         if "postfix" in [tags] {
             grok {
-                match => [ "message" , "postfix/%{DATA:subprogram}\[" ]
+                match => [ "message" , "postfix/?%{DATA:subprogram}\[" ]
                 add_tag => [ "grokked" ]
             }
         }
@@ -167,13 +180,13 @@ filter {
             }
 
             # Extract filename
-            if [request] =~ /^(\/.*?)+\/(.*?)$/ {
-                grok { match => [ "request" , "^(/%{DATA})+/%{DATA:filename}$" ] }
+            if [request] =~ /^((\/.*?)+)?\/(.*?)$/ {
+                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:filename}($|\?)" ] }
             }
 
             # Extract extension
             if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ] }
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)" ] }
             }
         }
 
@@ -233,13 +246,13 @@ filter {
             }
 
             # Extract filename
-            if [request] =~ /^(\/.*?)+\/(.*?)$/ {
-                grok { match => [ "request" , "^(/%{DATA})+/%{DATA:filename}$" ] }
+            if [request] =~ /^((\/.*?)+)?\/(.*?)$/ {
+                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:filename}($|\?)" ] }
             }
 
             # Extract extension
             if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ] }
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)" ] }
             }
         }
 
@@ -265,7 +278,7 @@ filter {
                 patterns_dir => [ "/opt/logstash/patterns" ]
                 match => [
                     "message" , "%{SYSLOGTIMESTAMP} sudo:%{SPACE}%{USER:sudoer} : (\(command continued\) %{GREEDYDATA:command}|TTY=%{DATA:tty} ; PWD=%{PATH:pwd} ; USER=%{USER:user} ; COMMAND=%{GREEDYDATA:command})",
-                    "message" , "%{SYSLOGTIMESTAMP} sudo:%{SPACE}%{USER:sudoer} : %{DATA} ; TTY=%{DATA:tty} ; PWD=%{PATH:pwd} ; USER=%{USER:user} ; COMMAND=%{GREEDYDATA:command}"
+                    "message" , "%{SYSLOGTIMESTAMP} sudo:%{SPACE}%{USER:sudoer} : (%{DATA} ; )?TTY=%{DATA:tty} ; PWD=%{DATA:pwd} ; USER=%{USER:user} ; COMMAND=%{GREEDYDATA:command}"
                 ]
                 add_tag => "grokked"
                 tag_on_failure => [ "_grokparsefailure" , "sudo_grok_fail"]
@@ -279,22 +292,30 @@ filter {
             drop {}
         }
 
-        grok {
-            patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [
-                "message" , "(rhost=%{IPORHOST:host}%{SPACE}user=%{USER:user})|(?i:invalid user %{USER:user})|(Failed password for (invalid user %{USER:user}|%{USER:user}) from %{IPORHOST:authfail_host})|(Too many authentication failures for %{USER:user})",
-                "message" , "session (opened|closed) for (local )?user %{USER:user}( from \[%{IP:clientip}\])?",
-                "message" , "Received disconnect from %{IP:clientip}",
-                "message" , "close %{QS:filepath} bytes read %{INT:[bytes][read]} written %{INT:[bytes][written]}",
-                "message" , "open %{QS:filepath}",
-                "message" , "(closedir|opendir) %{QS:filepath}",
-                "message" , "set %{QS:filepath}",
-                "message" , "Accepted (publickey|password) for %{USER:user} from %{IP:clientip}",
-                "message" , "rename old %{QS:[filepath][old]} new %{QS:filepath}",
-                "message" , "Connection closed by %{IP:clientip}",
-                "message" , "%{GREEDYDATA:message}"
-            ]
-            add_tag => "grokked"
+        if "authfail" in [tags] and "logname=" in [message] {
+            kv{}
+        } else if "Read from socket failed" not in [message] {
+
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [
+                    "message" , "Did not receive identification string from %{IPORHOST:clientip}",
+                    "message" , "(?i:invalid user %{USER:user})( from %{IP:clientip})?",
+                    "message" , "(Failed password for (invalid user %{USER:user}|%{USER:user}) from %{IPORHOST:clientip} port %{INT:source_port})",
+                    "message" , "Too many authentication failures for %{USER:user}",
+                    "message" , "session (opened|closed) for (local )?user %{USER:user}( from \[%{IP:clientip}\])?",
+                    "message" , "Received disconnect from %{IP:clientip}",
+                    "message" , "close %{QS:filepath} bytes read %{INT:[bytes][read]} written %{INT:[bytes][written]}",
+                    "message" , "open %{QS:filepath}",
+                    "message" , "(closedir|opendir) %{QS:filepath}",
+                    "message" , "set %{QS:filepath}",
+                    "message" , "Accepted (publickey|password) for %{USER:user} from %{IP:clientip} port %{INT:source_port}",
+                    "message" , "rename old %{QS:[filepath][old]} new %{QS:filepath}",
+                    "message" , "Connection closed by %{IP:clientip}",
+                    "message" , "reverse mapping checking getaddrinfo for %{HOSTNAME:clienthost} \[%{IP:clientip}\]"
+                ]
+                add_tag => "grokked"
+            }
         }
 
         if [filepath] {
@@ -321,7 +342,7 @@ filter {
 
             # Extract extension
             if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)$" ]}
+                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)" ]}
             }
         }
 
@@ -400,7 +421,33 @@ filter {
             }
         }
 
-        mutate { remove_field => [ "eventtime" ] }
+        mutate {
+            add_field => { "program" => "mongo" }
+            remove_field => [ "eventtime" ]
+        }
+    }
+
+    # Samba
+    if "samba" in [tags] {
+        grok {
+            match => [
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] %{GREEDYDATA} Authentication for user \[%{USER:user}\] -> \[%{USER}\] FAILED with error %{DATA:error}$",
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] %{GREEDYDATA} Allowed connection from%{SPACE}\(%{IP:clientip}\)$",
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] smbd/service.c:close_cnum\(%{INT}\) %{IP:clientip} \(%{IP}\) closed connection to service %{DATA:service}$",
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] smbd/service.c:make_connection_snum\(%{INT}\) %{IP:clients} \(%{IP}\) connect to service %{DATA:service} initially as user %{USER:user} \(uid=%{INT:uuid}, gid=%{INT:gid}\) \(pid %{INT:pid}\)$",
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] "
+            ]
+        }
+
+        date {
+            match => [ "eventtime" , "yyyy/MM/dd HH:mm:ss" ]
+            timezone => "America/New_York"
+            add_tag => "dated_samba"
+        }
+
+        mutate {
+            add_field => { "program" => "smbd" }
+        }
     }
 
 
@@ -768,6 +815,12 @@ filter {
               "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{NOTSPACE:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})",
               "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{NOTSPACE:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)",
               "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{WORD:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{IP:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group %{DATA:policy_id} \[%{DATA:hashcode1}, %{DATA:hashcode2}\]",
+              "message", "%{CISCO_REASON:reason} for %{WORD:protocol} error message: %{WORD:err_protocol} src %{DATA:err_src_interface}:%{DATA:err_src_ip}(\(%{DATA:err_src_fwuser}\))? dst %{DATA:err_dst_interface}:%{DATA:err_dst_ip}(\(%{DATA:err_dst_fwuser}\))? \(type %{INT:err_icmp_type}, code %{INT:err_icmp_code}\) on %{DATA:interface} interface\.  Original IP payload: %{WORD:protocol} src %{DATA:orig_src_ip}/%{INT:orig_src_port}(\(%{DATA:orig_src_fwuser}\))? dst %{DATA:orig_dst_ip}/%{INT:orig_dst_port}(\(%{DATA:orig_dst_fwuser}\))?",
+              "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{DATA:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group \"?%{DATA:policy_id}\"? \[%{DATA:hashcode1}, %{DATA:hashcode2}\]",
+              "message", "regular translation creation failed for %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip} dst %{DATA:dst_interface}:%{DATA:dst_ip} (\(type %{INT:icmp_type}, code %{INT:icmp_code}\))?",
+              "message", "User '%{DATA:user}', running '%{WORD:running}' from IP %{IP:src_ip}, executed '%{GREEDYDATA:command}'",
+              "message", "User '%{DATA:user}' executed the '%{DATA:command} command",
+              "message", "User logged out: Uname: %{DATA:user}",
               "message", "%{CISCOFW106001}",
               "message", "%{CISCOFW106006_106007_106010}",
               "message", "%{CISCOFW106014}",
@@ -796,15 +849,37 @@ filter {
 
     }
 
+    # --- Cisco IOS Logs --- #
+    if "cisco" in [tags] {
+        grok {
+            match => [
+                        "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: Interface %{DATA:interface}, changed state to %{GREEDYDATA:state}$",
+                        "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: Configured from console by %{WORD:user} on %{WORD:tty} \(%{IP:clientip}\)",
+                        "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: %{GREEDYDATA:message}"
+                    ]
+        }
+
+        date {
+            match => [ "eventtime" , "MMM dd HH:mm:ss.SSS zzz" ]
+            add_tag => "dated_ios"
+        }
+    }
+
 }
 
 output {
 
     elasticsearch {
         bind_host => "{{ ansible_default_ipv4.address }}"
+        # Specifying a custom bind_port causes LS to join the cluster but no
+        # data is sent. Need to file a bug on this.
+        # bind_port => {{ es_http_port }}
         cluster => "{{ es_cluster_name }}"
         node_name => "{{ ansible_hostname }}"
-        port => "9500-9600"
+        host => "kingfisher01.royall.com"
+        port => "{{ es_transport_port }}-{{ es_transport_port + 10 }}"
+        protocol => "transport"
         flush_size => 500
+        workers => {{ ansible_processor_count }}
     }
 }

@@ -15,7 +15,7 @@ input {
     file {
         path => "/var/log/remote/**/*.syslog.json.log"
         sincedb_path => "/opt/logstash/sincedb/sincedb_syslog"
-        exclude => [ "*.gz" ]
+        exclude => [ "*.gz" , "postfix-*" , "dkimproxy\.out-*" ]
         start_position => "beginning"
         codec => "json"
         tags => [ "syslog" ]
@@ -147,26 +147,26 @@ input {
         type => "syslog"
     }
 
-    # file {
-    #     path => "/var/log/remote/cwa/W3SVC*/*.log"
-    #     sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
-    #     exclude => [ "*.gz" ]
-    #     start_position => "beginning"
-    #     codec => "plain"
-    #     tags => [ "iis" , "iis5" , "cwa" ]
-    #     type => "iis5"
-    # }
+    file {
+        path => "/var/log/remote/cwa/W3SVC*/*.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_cwa"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "iis" , "iis5" , "cwa" ]
+        type => "iis5"
+    }
 
-    # # IIS logs from old IIS servers
-    # file {
-    #     path => "/var/log/remote/{ebi,ika,hamachi}/W3SVC*/*.log"
-    #     sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
-    #     exclude => [ "*.gz" ]
-    #     start_position => "beginning"
-    #     codec => "plain"
-    #     tags => [ "iis" , "iis6" ]
-    #     type => "iis6"
-    # }
+    # IIS logs from old IIS servers
+    file {
+        path => "/var/log/remote/{ebi,ika,hamachi}/W3SVC*/*.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_iis"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "iis" , "iis6" ]
+        type => "iis6"
+    }
 
     # # IIS logs from Exchange on heron
     # file {
@@ -190,6 +190,30 @@ input {
     #     type => "exchange"
     # }
 
+    # Cisco IOS logs
+    file {
+        path => "/var/log/remote/{10.255.255.26,10.255.255.27}/**/*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_cisco"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "cisco" , "ios" , "network" ]
+        type => "ios"
+    }
+
+    # Samba logs
+    file {
+        path => "/var/log/remote/**/smbd/smbd*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_smbd"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => multiline {
+            pattern => "^\s"
+            what => "previous"
+        }
+        tags => [ "smbd" , "samba" ]
+        type => "syslog"
+    }
 }
 
 filter {
