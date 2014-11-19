@@ -430,7 +430,7 @@ filter {
     # Samba
     if "samba" in [tags] {
         grok {
-            match [
+            match => [
                     "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] %{GREEDYDATA} Authentication for user \[%{USER:user}\] -> \[%{USER}\] FAILED with error %{DATA:error}$",
                     "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] %{GREEDYDATA} Allowed connection from%{SPACE}\(%{IP:clientip}\)$",
                     "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] smbd/service.c:close_cnum\(%{INT}\) %{IP:clientip} \(%{IP}\) closed connection to service %{DATA:service}$",
