@@ -878,8 +878,8 @@ output {
         cluster => "{{ es_cluster_name }}"
         node_name => "{{ ansible_hostname }}"
         host => "kingfisher01.royall.com"
-        port => "{{ es_transport_port }}-{{ es_transport_port + 10 }}"
-        protocol => "transport"
+        # port => "{{ es_transport_port }}"
+        protocol => "node"
         flush_size => 500
         workers => {{ ansible_processor_count }}
     }
