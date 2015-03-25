@@ -17,21 +17,20 @@ input {
         threads => 1
     }
 
-{% if ansible_hostname == "kite35" %}
+{% if ansible_hostname == "kite36" %}
     imap {
         host => "mg.royall.com"
         user => "productionroot"
         password => "{{ productionroot_password }}"
         secure => "true"
-        fetch_count => "1"
-        check_interval => "300"
+        fetch_count => 100
+        check_interval => 300
         delete => true
         tags => [ "imap" ]
         verify_cert => true
     }
 {% endif %}
 }
-
 
 filter {
 

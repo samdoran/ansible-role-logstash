@@ -11,6 +11,6 @@
 
 - name: Patch /opt/logstash/lib/logstash/inputs/imap.rb until logstash 1.4.3 is released
   lineinfile: state=present dest=/opt/logstash/lib/logstash/inputs/imap.rb regexp='value = transcode_to_utf8\(header.decoded' line='        value = transcode_to_utf8(header.decoded.to_s)'
-  when: ansible_hostname == 'kite35'
+  when: ansible_hostname == 'kite36'
   tags: [ "logstash" , "config" , "parserconf" , "patterns" , "patch" ]
   notify: restart logstash
