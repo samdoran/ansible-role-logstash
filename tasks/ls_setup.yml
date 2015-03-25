@@ -1,6 +1,6 @@
 ---
 - name: Install logstash
-  yum: name=logstash state=latest
+  yum: name=logstash-contrib state=latest
   tags: logstash
 
 - name: Enable Logstash
