@@ -848,6 +848,43 @@ filter {
             ]
         }
 
+        mutate { add_tag => [ 'asa' , 'firewall' ] }
+
+    }
+
+    # --- PIX Logs --- #
+
+    if [program] =~ /PIX/ {
+
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [
+                "message" , "%{PIXFW710005}",
+                "message" , "%{PIXFW106011}",
+                "message" , "%{PIXFW106023}",
+                "message" , "%{PIXFW111007}",
+                "message" , "%{PIXFW111008}",
+                "message" , "%{PIXFW502103}",
+                "message" , "%{PIXFW611103}",
+                "message" , "%{PIXFW106015}",
+                "message" , "%{PIXFW302010}",
+                "message" , "%{PIXFW302013}",
+                "message" , "%{PIXFW302014}",
+                "message" , "%{PIXFW302015}",
+                "message" , "%{PIXFW302016}",
+                "message" , "%{PIXFW305011}",
+                "message" , "%{PIXFW305012}",
+                "message" , "%{PIXFW315011}",
+                "message" , "%{PIXFW605005}",
+                "message" , "%{PIXFW111009}",
+                "message" , "%{PIXFW710001}",
+                "message" , "%{PIXFW710002}",
+                "message" , "%{PIXFW710005}"
+            ]
+        }
+
+        mutate { add_tag => [ 'pix' , 'firewall' ] }
+
     }
 
     # --- Cisco IOS Logs --- #

@@ -1,0 +1,25 @@
+PROTOCOL (UDP|TCP|ICMP)
+DIRECTION (outbound|inbound)
+VERB ([Tt]eardown|[Bb]uilt)
+
+PIXFW710005 %{PROTOCOL} request discarded from %{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port}(/%{NOTSPACE:dst_service})?
+PIXFW106011
+PIXFW106023
+PIXFW111007
+PIXFW111008
+PIXFW502103
+PIXFW611103
+PIXFW106015
+PIXFW302010
+PIXFW302013 %{VERB} %{DIRECTION} %{PROTOCOL} connection %{INT:connection} for %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} \(%{IP:nat_src_ip}/%{INT:nat_src_port}\) to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port} \(%{IP:nat_dst_ip}/%{INT:nat_dst_port}\)
+PIXFW302014
+PIXFW302015 %{PIXFW302013}
+PIXFW302016 %{VERB} %{PROTOCOL} connection %{INT:connection} for %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port} duration %{TIME:duration} bytes %{INT:bytes}
+PIXFW305011
+PIXFW305012 Teardown dynamic %{PROTOCOL} translation from %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port} duration %{TIME:duration}
+PIXFW315011 %{VERB} dynamic %{PROTOCOL} translation from %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port}
+PIXFW605005
+PIXFW111009
+PIXFW710001
+PIXFW710002
+PIXFW710005
