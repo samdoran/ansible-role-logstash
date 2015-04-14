@@ -17,21 +17,20 @@ input {
         threads => 1
     }
 
-{% if ansible_hostname == "kite35" %}
+{% if ansible_hostname == "logstash-02" %}
     imap {
         host => "mg.royall.com"
         user => "productionroot"
         password => "{{ productionroot_password }}"
         secure => "true"
-        fetch_count => "1"
-        check_interval => "300"
+        fetch_count => 100
+        check_interval => 300
         delete => true
         tags => [ "imap" ]
         verify_cert => true
     }
 {% endif %}
 }
-
 
 filter {
 
@@ -371,7 +370,9 @@ filter {
                             "message" , "%{TACPLUS_LOGIN_FAIL}",
                             "message" , "%{TACPLUS_ERROR}",
                             "message" , "error retrieving information about user %{USER:user}",
-                            "message" , "auth could not identify password for \[%{USER:user}\]"
+                            "message" , "auth could not identify password for \[%{USER:user}\]",
+                            "message" , "bytes from %{IPORHOST:clientip}",
+                            "message" , "%{IPORHOST:clientip} : fd %{INT} eof"
                 ]
             }
         }
@@ -876,9 +877,9 @@ output {
         # bind_port => {{ es_http_port }}
         cluster => "{{ es_cluster_name }}"
         node_name => "{{ ansible_hostname }}"
-        host => "kingfisher01.royall.com"
-        port => "{{ es_transport_port }}-{{ es_transport_port + 10 }}"
-        protocol => "transport"
+        host => "{{ groups[es_group_name][0] }}"
+        # port => "{{ es_transport_port }}"
+        protocol => "node"
         flush_size => 500
         workers => {{ ansible_processor_count }}
     }
