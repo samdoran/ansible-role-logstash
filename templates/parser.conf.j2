@@ -856,6 +856,7 @@ filter {
             match => [
                         "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: Interface %{DATA:interface}, changed state to %{GREEDYDATA:state}$",
                         "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: Configured from console by %{WORD:user} on %{WORD:tty} \(%{IP:clientip}\)",
+                        "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: list %{WORD:acl} %{WORD:verb} %{WORD:protocol} %{IP:src_ip}\(%{INT:src_port}\) -> %{IP:dst_ip}\(%{INT:dst_port}\)",
                         "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: %{GREEDYDATA:message}"
                     ]
         }
