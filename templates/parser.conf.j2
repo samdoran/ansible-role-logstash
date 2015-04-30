@@ -823,64 +823,210 @@ filter {
         }
     }
 
-    # --- ASA logs --- #
-
-    if [program] =~ /ASA/ {
-
-        grok {
-            match => [
-              "message", "%{CISCO_DIRECTION:direction} %{WORD:protocol} connection %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{NOTSPACE:dst_ip}/%{INT:dst_port} flags %{GREEDYDATA:tcp_flags} on interface %{GREEDYDATA:interface}",
-              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{NOTSPACE:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})",
-              "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{NOTSPACE:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)",
-              "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{WORD:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{IP:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group %{DATA:policy_id} \[%{DATA:hashcode1}, %{DATA:hashcode2}\]",
-              "message", "%{CISCO_REASON:reason} for %{WORD:protocol} error message: %{WORD:err_protocol} src %{DATA:err_src_interface}:%{DATA:err_src_ip}(\(%{DATA:err_src_fwuser}\))? dst %{DATA:err_dst_interface}:%{DATA:err_dst_ip}(\(%{DATA:err_dst_fwuser}\))? \(type %{INT:err_icmp_type}, code %{INT:err_icmp_code}\) on %{DATA:interface} interface\.  Original IP payload: %{WORD:protocol} src %{DATA:orig_src_ip}/%{INT:orig_src_port}(\(%{DATA:orig_src_fwuser}\))? dst %{DATA:orig_dst_ip}/%{INT:orig_dst_port}(\(%{DATA:orig_dst_fwuser}\))?",
-              "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{DATA:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group \"?%{DATA:policy_id}\"? \[%{DATA:hashcode1}, %{DATA:hashcode2}\]",
-              "message", "regular translation creation failed for %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip} dst %{DATA:dst_interface}:%{DATA:dst_ip} (\(type %{INT:icmp_type}, code %{INT:icmp_code}\))?",
-              "message", "User '%{DATA:user}', running '%{WORD:running}' from IP %{IP:src_ip}, executed '%{GREEDYDATA:command}'",
-              "message", "User '%{DATA:user}' executed the '%{DATA:command} command",
-              "message", "User logged out: Uname: %{DATA:user}",
-              "message", "%{CISCOFW106001}",
-              "message", "%{CISCOFW106006_106007_106010}",
-              "message", "%{CISCOFW106014}",
-              "message", "%{CISCOFW106015}",
-              "message", "%{CISCOFW106021}",
-              "message", "%{CISCOFW106023}",
-              "message", "%{CISCOFW106100}",
-              "message", "%{CISCOFW110002}",
-              "message", "%{CISCOFW302010}",
-              "message", "%{CISCOFW302013_302014_302015_302016}",
-              "message", "%{CISCOFW302020_302021}",
-              "message", "%{CISCOFW305011}",
-              "message", "%{CISCOFW313001_313004_313008}",
-              "message", "%{CISCOFW313005}",
-              "message", "%{CISCOFW402117}",
-              "message", "%{CISCOFW402119}",
-              "message", "%{CISCOFW419001}",
-              "message", "%{CISCOFW419002}",
-              "message", "%{CISCOFW500004}",
-              "message", "%{CISCOFW602303_602304}",
-              "message", "%{CISCOFW710001_710002_710003_710005_710006}",
-              "message", "%{CISCOFW713172}",
-              "message", "%{CISCOFW733100}"
-            ]
-        }
-
-    }
-
-    # --- Cisco IOS Logs --- #
+    # --- Cisco IOS and Firewall Logs --- #
     if "cisco" in [tags] {
-        grok {
-            match => [
-                        "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: Interface %{DATA:interface}, changed state to %{GREEDYDATA:state}$",
-                        "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: Configured from console by %{WORD:user} on %{WORD:tty} \(%{IP:clientip}\)",
-                        "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: list %{WORD:acl} %{WORD:verb} %{WORD:protocol} %{IP:src_ip}\(%{INT:src_port}\) -> %{IP:dst_ip}\(%{INT:dst_port}\)",
-                        "message" , "(?<eventtime>%{MONTH} +%{MONTHDAY} %{TIME} %{WORD}): %{DATA:program}: %{GREEDYDATA:message}"
-                    ]
+
+        # Remove program field if it starts with a long integer
+        # Meant to remove the IOS program, which is a pretty useless number
+        if [program] =~ /^\d{4,}/ {
+            mutate{
+                remove_field => [ "program" ]
+            }
         }
 
-        date {
-            match => [ "eventtime" , "MMM dd HH:mm:ss.SSS zzz" ]
-            add_tag => "dated_ios"
+        # Remove leading <158> from messages
+        # Note sure what this is but, it's ugly
+        if [message] =~ /^<\d+>/ {
+            mutate {
+                gsub => [ "message" , "^<\d+>" , "" ]
+            }
+        }
+
+        # --- ASA logs --- #
+
+        if [message] =~ /%ASA-\d-\d+:/ {
+
+            # Extract the program field
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "%%{DATA:program}: " ]
+            }
+
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [
+                  "message", "%{CISCO_DIRECTION:direction} %{WORD:protocol} connection %{CISCO_ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{NOTSPACE:dst_ip}/%{INT:dst_port} flags %{GREEDYDATA:tcp_flags} on interface %{GREEDYDATA:interface}",
+                  "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} (?:from|src) %{IP:src_ip}/%{INT:src_port}(\(%{DATA:src_fwuser}\))? (?:to|dst) %{NOTSPACE:dst_ip}/%{INT:dst_port}(\(%{DATA:dst_fwuser}\))? (?:on interface %{DATA:interface}|due to %{CISCO_REASON:reason})",
+                  "message", "%{CISCO_ACTION:action} %{CISCO_DIRECTION:direction} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{NOTSPACE:dst_ip}(\(%{DATA:dst_fwuser}\))? \(type %{INT:icmp_type}, code %{INT:icmp_code}\)",
+                  "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{WORD:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{IP:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group %{DATA:policy_id} \[%{DATA:hashcode1}, %{DATA:hashcode2}\]",
+                  "message", "%{CISCO_REASON:reason} for %{WORD:protocol} error message: %{WORD:err_protocol} src %{DATA:err_src_interface}:%{DATA:err_src_ip}(\(%{DATA:err_src_fwuser}\))? dst %{DATA:err_dst_interface}:%{DATA:err_dst_ip}(\(%{DATA:err_dst_fwuser}\))? \(type %{INT:err_icmp_type}, code %{INT:err_icmp_code}\) on %{DATA:interface} interface\.  Original IP payload: %{WORD:protocol} src %{DATA:orig_src_ip}/%{INT:orig_src_port}(\(%{DATA:orig_src_fwuser}\))? dst %{DATA:orig_dst_ip}/%{INT:orig_dst_port}(\(%{DATA:orig_dst_fwuser}\))?",
+                  "message", "%{CISCO_ACTION:action} %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? dst %{DATA:dst_interface}:%{DATA:dst_ip}(/%{INT:dst_port})?(\(%{DATA:dst_fwuser}\))?( \(type %{INT:icmp_type}, code %{INT:icmp_code}\))? by access-group \"?%{DATA:policy_id}\"? \[%{DATA:hashcode1}, %{DATA:hashcode2}\]",
+                  "message", "regular translation creation failed for %{WORD:protocol} src %{DATA:src_interface}:%{IP:src_ip} dst %{DATA:dst_interface}:%{DATA:dst_ip} (\(type %{INT:icmp_type}, code %{INT:icmp_code}\))?",
+                  "message", "User '%{DATA:user}', running '%{WORD:running}' from IP %{IP:src_ip}, executed '%{GREEDYDATA:command}'",
+                  "message", "User '%{DATA:user}' executed the '%{DATA:command} command",
+                  "message", "User logged out: Uname: %{DATA:user}",
+                  "message", "%{CISCOFW106001}",
+                  "message", "%{CISCOFW106006_106007_106010}",
+                  "message", "%{CISCOFW106014}",
+                  "message", "%{CISCOFW106015}",
+                  "message", "%{CISCOFW106021}",
+                  "message", "%{CISCOFW106023}",
+                  "message", "%{CISCOFW106100}",
+                  "message", "%{CISCOFW110002}",
+                  "message", "%{CISCOFW302010}",
+                  "message", "%{CISCO_ACTION:action}(?: %{CISCO_DIRECTION:direction})? %{WORD:protocol} connection %{INT:connection_id} for %{DATA:src_interface}:(%{IP:src_ip}|%{USER:src_object})/%{INT:src_port}( \(%{IP:src_mapped_ip}/%{INT:src_mapped_port}\))?(\(%{DATA:src_fwuser}\))? to %{DATA:dst_interface}:(%{IP:dst_ip}|%{USER:dst_object})/%{INT:dst_port}( \(%{IP:dst_mapped_ip}/%{INT:dst_mapped_port}\))?(\(%{DATA:dst_fwuser}\))?( duration %{TIME:duration} bytes %{INT:bytes})?(?: %{CISCO_REASON:reason})?( \(%{DATA:user}\))?",
+                  "message", "%{CISCOFW302020_302021}",
+                  "message", "%{CISCOFW305011}",
+                  "message", "%{CISCOFW313001_313004_313008}",
+                  "message", "%{CISCOFW313005}",
+                  "message", "%{CISCOFW402117}",
+                  "message", "%{CISCOFW402119}",
+                  "message", "%{CISCOFW419001}",
+                  "message", "%{CISCOFW419002}",
+                  "message", "%{CISCOFW500004}",
+                  "message", "%{CISCOFW602303_602304}",
+                  "message", "%{CISCOFW710001_710002_710003_710005_710006}",
+                  "message", "%{CISCOFW713172}",
+                  "message", "%{CISCOFW733100}"
+                ]
+            }
+
+            if "firewall" not in [tags] {
+                mutate { add_tag => [ "firewall" ] }
+            }
+
+
+        } else if [message] =~ /%PIX-\d-\d+:/ {
+
+            # --- PIX logs --- #
+
+            # Extract the program field
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "%%{DATA:program}: " ]
+            }
+
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [
+                    "message" , "%{PIXFW710005}",
+                    "message" , "%{PIXFW302013}",
+                    "message" , "%{PIXFW302015}",
+                    "message" , "%{PIXFW302016}",
+                    "message" , "%{PIXFW305012}",
+                    "message" , "%{PIXFW305011}",
+                    "message" , "%{PIXFW106023}",
+                    "message" , "%{PIXFW106011}",
+                    "message" , "%{PIXFW106015}",
+                    "message" , "%{PIXFW109011}",
+                    "message" , "%{PIXFW402106}",
+                    "message" , "%{PIXFW500004}",
+                    "message" , "%{PIXFW302010}",
+                    "message" , "%{PIXFW303002}",
+                    "message" , "%{PIXFW609001}",
+                    "message" , "%{PIXFW111008}",
+                    "message" , "%{PIXFW111009}",
+                    "message" , "%{PIXFW304001}",
+                    "message" , "%{PIXFW710002}",
+                    "message" , "%{PIXFW605005}",
+                    "message" , "%{PIXFW502103}",
+                    "message" , "%{PIXFW315011}"
+                ]
+            }
+
+            if "firewall" not in [tags] {
+                mutate { add_tag => [ "firewall" ] }
+            }
+
+
+            # Extract folder, name, and extension
+            if [file][path] {
+
+                # Only try to extract the parent folder if it is in the [file][path] field
+                if [file][path] =~ /^\/.*?\// {
+                    # Extract parent folder
+                    grok { match => [ "[file][path]" , "^/%{DATA:[file][folder]}/" ] }
+                }
+
+                # Extract filename
+                grok { match => [ "[file][path]" , "^(/%{DATA})+/%{DATA:[file][name]}$" ] }
+
+                # Extract extension
+                if [file][name] =~ /.+?\.[^.]*/ {
+                    grok {
+                        patterns_dir => [ "/opt/logstash/patterns" ]
+                        match => [ "[file][name]" , "\.%{EXTENSION:[file][extension]}" ]
+                    }
+                }
+
+            }
+
+        } else {
+
+            # Parse IOS logs
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [
+                            "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: Interface %{DATA:interface}, changed state to %{GREEDYDATA:state}$",
+                            "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: Configured from console by %{WORD:user} on %{WORD:tty} \(%{IP:clientip}\)",
+                            "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: list %{WORD:acl} %{WORD:verb} %{WORD:protocol} %{IP:src_ip}\(%{INT:src_port}\) -> %{IP:dst_ip}\(%{INT:dst_port}\)",
+                            "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: %{GREEDYDATA:message}"
+                        ]
+            }
+
+            date {
+                match => [ "eventtime",
+                    "MMM dd HH:mm:ss.SSS zzz",
+                    "MMM dd HH:mm:ss.SSS zzz:",
+                    "MMM dd HH:mm:ss.SSS",
+                    "MMM dd HH:mm:ss"
+                ]
+                add_tag => "dated_ios"
+            }
+
+            mutate { add_tag => [ "ios" ] }
+        }
+
+        # Make the program name nicer to look at
+        # Lowercase the protocol
+        mutate {
+            gsub => [ "program" , "%" , "" ]
+            lowercase => [ "program" , "protocol" ]
+        }
+
+        geoip {
+            source => "src_ip"
+            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+        }
+
+        # Extract Cisco specific fields from the program name
+        # See http://www.cisco.com/web/applicat/errmess/emd_help.html for more info
+        grok {
+            match => [ "program" , "%{WORD:[cisco][facility]}-%{INT:[cisco][level]}-%{WORD:[cisco][mnemonic]}" ]
+        }
+
+        mutate {
+            # Remove leading white space put in by rsyslog
+            strip => [ "message" ]
+        }
+
+        # Translate cisco.level into a human readable field
+        if [cisco][level] == '0' {
+            mutate { add_field => { "[cisco][severity]" => "emergency" } }
+        } else if [cisco][level] == '1' {
+            mutate { add_field => { "[cisco][severity]" => "alert" } }
+        } else if [cisco][level] == '2' {
+            mutate { add_field => { "[cisco][severity]" => "critical" } }
+        } else if [cisco][level] == '3' {
+            mutate { add_field => { "[cisco][severity]" => "error" } }
+        } else if [cisco][level] == '4' {
+            mutate { add_field => { "[cisco][severity]" => "warning" } }
+        } else if [cisco][level] == '5' {
+            mutate { add_field => { "[cisco][severity]" => "notification" } }
+        } else if [cisco][level] == '6' {
+            mutate { add_field => { "[cisco][severity]" => "information" } }
+        } else if [cisco][level] == '7' {
+            mutate { add_field => { "[cisco][severity]" => "discriminator" } }
         }
     }
 
