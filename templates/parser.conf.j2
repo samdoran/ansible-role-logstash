@@ -47,7 +47,7 @@ filter {
     }
 
     # Capture actual source host from file path
-    if "imap" not in [tags] and [type] != "eventlog" {
+    if [path] =~ /\/var\/log\/remote/ {
         grok { match => [ "path" , "/var/log/remote/%{DATA:actual_source_host}/" ] }
 
         if [host] != [actual_source_host] {
@@ -57,7 +57,8 @@ filter {
             }
         }
 
-        if [host] =~ /^[a-zA-Z].*\./ {
+        # Check for digits then a '-' to match hostnames like '2960-1-1.adm'
+        if [host] =~ /^([a-zA-Z])|(\d+-).*\./ {
             mutate { rename => [ "host" , "fqdn" ] }
             grok   { match  => [ "fqdn" , "%{DATA:host}\.%{HOST:domain}$" ] }
             mutate { remove_field => [ "actual_source_host" ] }
@@ -175,18 +176,24 @@ filter {
 
             # Extract folder
             if [request] =~ /\/.*\// {
-                grok { match => [ "request", "^/%{DATA:folder}/" ] }
+                grok { match => [ "request", "^/%{DATA:[file][folder]}/" ] }
             }
 
             # Extract filename
             if [request] =~ /^((\/.*?)+)?\/(.*?)$/ {
-                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:filename}($|\?)" ] }
+                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:[file][name]}($|\?)" ] }
             }
 
             # Extract extension
-            if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)" ] }
+            if [file][name] and [file][name] =~ /\./ {
+                grok {
+                    patterns_dir => [ "/opt/logstash/patterns" ]
+                    match => [ "[file][name]" , "\.%{EXTENSION:[file][extension]}" ]
+                }
+
+                mutate { lowercase => [ "[file][extension]" ] }
             }
+
         }
 
         date {
@@ -241,17 +248,22 @@ filter {
 
             # Extract folder
             if [request] =~ /\/.*\// {
-                grok { match => [ "request", "^/%{DATA:folder}/" ] }
+                grok { match => [ "request", "^/%{DATA:[file][folder]}/" ] }
             }
 
             # Extract filename
             if [request] =~ /^((\/.*?)+)?\/(.*?)$/ {
-                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:filename}($|\?)" ] }
+                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:[file][name]}($|\?)" ] }
             }
 
             # Extract extension
-            if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)" ] }
+            if [file][name] and [file][name] =~ /\./ {
+                grok {
+                    patterns_dir => [ "/opt/logstash/patterns" ]
+                    match => [ "[file][name]" , "\.%{EXTENSION:[file][extension]}" ]
+                }
+
+                mutate { lowercase => [ "[file][extension]" ] }
             }
         }
 
@@ -300,48 +312,53 @@ filter {
                 match => [
                     "message" , "Did not receive identification string from %{IPORHOST:clientip}",
                     "message" , "(?i:invalid user %{USER:user})( from %{IP:clientip})?",
-                    "message" , "(Failed password for (invalid user %{USER:user}|%{USER:user}) from %{IPORHOST:clientip} port %{INT:source_port})",
+                    "message" , "((invalid user%{SPACE}%{USER:user})|%{USER:user}) from %{IPORHOST:clientip}( port %{INT:source_port})?",
                     "message" , "Too many authentication failures for %{USER:user}",
                     "message" , "session (opened|closed) for (local )?user %{USER:user}( from \[%{IP:clientip}\])?",
                     "message" , "Received disconnect from %{IP:clientip}",
-                    "message" , "close %{QS:filepath} bytes read %{INT:[bytes][read]} written %{INT:[bytes][written]}",
-                    "message" , "open %{QS:filepath}",
-                    "message" , "(closedir|opendir) %{QS:filepath}",
-                    "message" , "set %{QS:filepath}",
+                    "message" , "close %{QS:[file][path]} bytes read %{INT:[bytes][read]} written %{INT:[bytes][written]}",
+                    "message" , "open %{QS:[file][path]}",
+                    "message" , "(closedir|opendir) %{QS:[file][path]}",
+                    "message" , "set %{QS:[file][path]}",
                     "message" , "Accepted (publickey|password) for %{USER:user} from %{IP:clientip} port %{INT:source_port}",
-                    "message" , "rename old %{QS:[filepath][old]} new %{QS:filepath}",
+                    "message" , "rename old %{QS:[file][path][old]} new %{QS:[file][path]}",
                     "message" , "Connection closed by %{IP:clientip}",
-                    "message" , "reverse mapping checking getaddrinfo for %{HOSTNAME:clienthost} \[%{IP:clientip}\]"
+                    "message" , "reverse mapping checking getaddrinfo for %{HOSTNAME:clienthost} \[%{IP:clientip}\]",
+                    "message" , "error retrieving information about user%{SPACE}%{USER:user}",
+                    "message" , "(?i)invalid user%{SPACE}%{USER:user}"
                 ]
                 add_tag => "grokked"
             }
         }
 
-        if [filepath] {
+        if [file][path] {
             # Remove trailing and leading quotes
             mutate {
                 gsub => [
-                    "filepath" , "\"" , "",
-                    "[filepath][old]" , "\"" , ""
+                    "[file][path]" , "\"" , "",
+                    "[file][path][old]" , "\"" , ""
                 ]
             }
 
             # Extract folder
             grok {
-                match => [ "filepath", "^/%{DATA:folder}/" ]
+                match => [ "[file][path]", "^/%{DATA:[file][folder]}/" ]
             }
 
             # Extract filename
             grok {
                 match => [
-                    "filepath" , "^(/%{DATA})+/%{DATA:filename}$",
-                    "[filepath][old]" , "^(/%{DATA})+/%{DATA:filename}$"
+                    "[file][path]" , "^(/%{DATA})+/%{DATA:[file][name]}$",
+                    "[file][path][old]" , "^(/%{DATA})+/%{DATA:[file][name]}$"
                 ]
             }
 
             # Extract extension
-            if [filename] and [filename] =~ /\./ {
-                grok { match => [ "filename" , "\.(?<extension>[a-zA-Z0-9_-]+)" ]}
+            if [file][name] and [file][name] =~ /\./ {
+                grok {
+                    patterns_dir => [ "/opt/logstash/patterns" ]
+                    match => [ "[file][name]" , "\.%{EXTENSION:[file][extension]}" ]
+                }
             }
         }
 
@@ -720,7 +737,7 @@ filter {
         # Extract first folder after domain
         if [request] =~ /\/.*\// {
             grok {
-                match => ["request", "/%{DATA:folder}/"]
+                match => ["request", "/%{DATA:[file][folder]}/"]
             }
         }
 
