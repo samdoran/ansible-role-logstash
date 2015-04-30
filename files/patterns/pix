@@ -1,25 +1,32 @@
-PROTOCOL (UDP|TCP|ICMP)
+PROTOCOL (?i:UDP|TCP|ICMP)
 DIRECTION (outbound|inbound)
-VERB ([Tt]eardown|[Bb]uilt)
+ACTION (?i)(teardown|built|deny|discarded|permitted|requested|terminated|disconnected|retrieved|stored)
+NATTYPE (?i)(dynamic|static)
 
-PIXFW710005 %{PROTOCOL} request discarded from %{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port}(/%{NOTSPACE:dst_service})?
-PIXFW106011
-PIXFW106023
-PIXFW111007
-PIXFW111008
-PIXFW502103
-PIXFW611103
-PIXFW106015
-PIXFW302010
-PIXFW302013 %{VERB} %{DIRECTION} %{PROTOCOL} connection %{INT:connection} for %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} \(%{IP:nat_src_ip}/%{INT:nat_src_port}\) to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port} \(%{IP:nat_dst_ip}/%{INT:nat_dst_port}\)
-PIXFW302014
+PIXFW106011 %{ACTION:action} %{DIRECTION:direction} \(No xlate\) %{PROTOCOL:protocol} src %{WORD:src_if_name}:%{IP:src_ip}(/%{INT:src_port})? dst %{WORD:dst_if_name}:%{IPORHOST:object}(/%{INT:dst_port})?
+PIXFW106015 %{ACTION:action} %{PROTOCOL:protocol} \(%{DATA:msg}\) from %{IPORHOST:src_ip}/%{INT:src_port} to %{IP:dst_ip}/%{INT:dst_port} flags %{DATA:flags} on interface %{WORD:dst_if_name}
+PIXFW106023 %{ACTION:action} %{PROTOCOL:protocol} src %{WORD:src_if_name}:(%{IP:src_ip}|%{USER:src_host})(/%{INT:src_port})? dst %{WORD:dst_if_name}:%{USER:object}(/%{INT:dst_port})?%{DATA}by access-group "%{DATA:acl}"
+PIXFW109011 user \'%{WORD:user}\', sid %{INT:sid}
+PIXFW302010 %{INT:inuse} in use, %{INT:mostused} most used
+PIXFW302013 %{ACTION:action} %{DIRECTION:direction} %{PROTOCOL:protocol} connection %{INT:connection} for %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} \(%{IP:nat_src_ip}/%{INT:nat_src_port}\) to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port} \(%{IP:nat_dst_ip}/%{INT:nat_dst_port}\)
+PIXFW302014 %{PIXFW302016}
 PIXFW302015 %{PIXFW302013}
-PIXFW302016 %{VERB} %{PROTOCOL} connection %{INT:connection} for %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port} duration %{TIME:duration} bytes %{INT:bytes}
-PIXFW305011
-PIXFW305012 Teardown dynamic %{PROTOCOL} translation from %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port} duration %{TIME:duration}
-PIXFW315011 %{VERB} dynamic %{PROTOCOL} translation from %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port}
-PIXFW605005
-PIXFW111009
-PIXFW710001
-PIXFW710002
-PIXFW710005
+PIXFW302016 %{ACTION:action} %{PROTOCOL:protocol} connection %{INT:connection} for %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port} duration %{TIME:duration} bytes %{INT:bytes}
+PIXFW303002 %{IP:src_ip} %{ACTION:action} %{IP:dst_ip}:%{GREEDYDATA:[file][path]}
+PIXFW305011 %{ACTION:action} %{NATTYPE:nat_type} %{PROTOCOL:protocol} translation from %{WORD:src_if_name}:%{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{INT:dst_port}( duration %{TIME:duration})?
+PIXFW305012 %{PIXFW305011}
+PIXFW402106 \(ip\) dest_addr= %{IP:dst_ip}, src_addr= %{IP:src_ip}, prot= %{PROTOCOL:protocol}
+PIXFW500004 Invalid transport field for protocol=%{INT}, from %{IP:src_ip}/%{INT:src_port} to %{IP:dst_ip}/%{INT:dst_port}
+PIXFW609001 %{ACTION:action} local-host %{WORD:src_if_name}:%{IP:src_ip}( duration %{TIME:duration})?
+PIXFW609002 %{PIXFW609001}
+PIXFW710005 %{PROTOCOL:protocol} request %{ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/(%{INT:dst_port}|%{USER:dst_service})
+PIXFW111008 User \'%{USER:user}\' executed the \'%{DATA:command}\' command
+PIXFW111009 User \'%{USER:user}\' executed cmd: %{DATA:command}$
+PIXFW304001 %{IP:src_ip} Accessed URL %{IP:dst_ip}:/%{USER:[file][name]}\.%{EXTENSION:[file][extension]}
+PIXFW109005 Authentication succeeded for user \'%{USER:user}\' from %{IP:src_ip}/%{INT:src_port} to %{IP:dst_ip}/%{INT:dst_port} on interface %{WORD:dst_if_name}
+PIXFW710002 %{PROTOCOL:protocol} access %{ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{USER:dst_service}
+PIXFW710001 %{PIXFW710002}
+PIXFW605005 Login %{ACTION:action} from %{IP:src_ip}/%{INT:src_port} to %{WORD:dst_if_name}:%{IP:dst_ip}/%{USER:dst_service} for user \"%{USER:user}\"
+PIXFW502103 User priv level changed: Uname: %{USER:user}
+PIXFW315011 SSH session from %{IP:src_ip} on interface %{WORD:dst_if_name} for user \"%{USER:user}\" %{ACTION:action}
+
