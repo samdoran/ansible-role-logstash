@@ -963,21 +963,26 @@ filter {
 
         } else {
 
-            # Parse IOS logs
+            # Parse IOS and Nexus logs
             grok {
                 patterns_dir => [ "/opt/logstash/patterns" ]
                 match => [
                             "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: Interface %{DATA:interface}, changed state to %{GREEDYDATA:state}$",
                             "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: Configured from console by %{WORD:user} on %{WORD:tty} \(%{IP:clientip}\)",
+                            "message" , "%{CISCOEVENTTIME:eventime}( %%{DATA:program})?: Configured from vty by %{WORD:user} on %{IP:clientip}@%{DATA:terminal}$",
                             "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: list %{WORD:acl} %{WORD:verb} %{WORD:protocol} %{IP:src_ip}\(%{INT:src_port}\) -> %{IP:dst_ip}\(%{INT:dst_port}\)",
-                            "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: %{GREEDYDATA:message}"
+                            "message" , "%{CISCOEVENTTIME:eventtime}( %%{DATA:program})?: %{GREEDYDATA:message}"
                         ]
             }
 
             date {
                 match => [ "eventtime",
-                    "MMM dd HH:mm:ss.SSS zzz",
+                    "MMM  d HH:mm:ss.SSS zzz:",
                     "MMM dd HH:mm:ss.SSS zzz:",
+                    "MMM  d HH:mm:ss.SSS zzz",
+                    "MMM dd HH:mm:ss.SSS zzz",
+                    "YYYY MMM  d HH:mm:ss.SSS zzz:",
+                    "YYYY MMM dd HH:mm:ss.SSS zzz:",
                     "MMM dd HH:mm:ss.SSS",
                     "MMM dd HH:mm:ss"
                 ]
