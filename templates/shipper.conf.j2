@@ -22,6 +22,14 @@ input {
         tags => [ "cisco" , "network" ]
     }
 
+    # Port to catch logs for debugging
+    # They will be output to /opt/logstash/debug.log
+    udp {
+        port => 4500
+        codec => "plain"
+        tags => [ "debug" ]
+    }
+
     # Cisco IOS logs
     file {
         path => [ "/var/log/remote/*/*.cisco.json.log" ]
@@ -225,13 +233,21 @@ output {
 
     # stdout { debug => true }
 
-    redis {
-        host => [ "{{ redis_host_1 }}" , "{{ redis_host_2 }}"]
-        shuffle_hosts => true
-        port => "5678"
-        data_type => "list"
-        key => "logstash"
-        workers => {{ ansible_processor_count }}
+    if "debug" in [tags] {
+        file {
+            path => "/opt/logstash/debug.log"
+            codec => "rubydebug"
+        }
+    } else {
+        redis {
+            host => [ "{{ redis_host_1 }}" , "{{ redis_host_2 }}"]
+            shuffle_hosts => true
+            port => "5678"
+            data_type => "list"
+            key => "logstash"
+            workers => {{ ansible_processor_count }}
+        }
     }
+
 
 }
