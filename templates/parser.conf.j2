@@ -984,7 +984,9 @@ filter {
                             "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: Configured from console by %{WORD:user} on %{WORD:tty} \(%{IP:clientip}\)",
                             "message" , "%{CISCOEVENTTIME:eventime}( %%{DATA:program})?: Configured from vty by %{WORD:user} on %{IP:clientip}@%{DATA:terminal}$",
                             "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: list %{WORD:acl} %{WORD:verb} %{WORD:protocol} %{IP:src_ip}\(%{INT:src_port}\) -> %{IP:dst_ip}\(%{INT:dst_port}\)",
-                            "message" , "%{CISCOEVENTTIME:eventtime}( %%{DATA:program})?: %{GREEDYDATA:message}"
+                            "message" , "%{CISCOEVENTTIME:eventtime}( %%{DATA:program})?: list %{WORD:acl} %{WORD:verb} %{INT} %{IPORHOST:src_ip} -> %{IPORHOST:dst_ip}",
+                            "message" , "%{CISCOEVENTTIME:eventtime}( %%{DATA:program})?: \(target:class\)-\(%{DATA:policy_map}:%{DATA:policy}\) %{WORD:verb} %{WORD:protocol} pkt %{IPORHOST:src_ip}:%{INT:src_port} => %{IPORHOST:dst_ip}:%{INT:dst_port}",
+                            "message" , "%{CISCOEVENTTIME:eventtime}( %%{DATA:program})?:"
                         ]
             }
 
@@ -1008,7 +1010,10 @@ filter {
         # Make the program name nicer to look at
         # Lowercase the protocol
         mutate {
-            gsub => [ "program" , "%" , "" ]
+            gsub => [
+                "program" , "%" , "",
+                "message" , "^\*" , ""
+            ]
             lowercase => [ "program" , "protocol" ]
         }
 
