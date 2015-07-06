@@ -1,0 +1,35 @@
+    # TACACS
+    if "tac_plus" in [tags] {
+
+        # Drop noisy connect messages
+        if "connect from" in [message] {
+            drop {}
+        }
+
+        # Grab key values but exclude cmd because kv doesn't get the whole command
+        kv {
+            exclude_keys => [ "cmd" ]
+        }
+
+        if "check pass" not in [message] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [  "message" , "%{TACPLUS}",
+                            "message" , "%{TACPLUS_LOGIN_FAIL}",
+                            "message" , "%{TACPLUS_ERROR}",
+                            "message" , "error retrieving information about user %{USER:user}",
+                            "message" , "auth could not identify password for \[%{USER:user}\]",
+                            "message" , "bytes from %{IPORHOST:clientip}",
+                            "message" , "%{IPORHOST:clientip} : fd %{INT} eof"
+                ]
+            }
+        }
+
+        if "cmd=" in [message] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "%{TACCMD}" ]
+            }
+        }
+
+    }

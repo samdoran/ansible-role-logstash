@@ -1,0 +1,25 @@
+    # --- Exchange --- #
+
+    if "exchange" in [tags] {
+        # Drop comment and blank lines
+        if [message] =~ /(^#)|(^$)/ {
+            drop {}
+        }
+
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => ["message", "%{EXCHANGELOGS}"]
+            add_tag => [ "grokked" ]
+        }
+
+        # Take tabs out of timestamp
+        mutate {
+            gsub => [ "eventtime" , "\t", " " ]
+        }
+
+        date {
+            match => [ "eventtime" , "yyyy-M-d H:m:s z" ]
+            add_tag => "dated"
+            remove_field => [ "eventtime" ]
+        }
+    }

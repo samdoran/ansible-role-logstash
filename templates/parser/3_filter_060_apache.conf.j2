@@ -1,0 +1,79 @@
+    # --- Apache logs --- #
+    if "apache" in [tags] {
+        # Drop stdout from processes run by apache
+        if [message] =~ /^\s*\b\w+\b:/ { drop {} }
+    }
+
+    if [type] == "apache-access" {
+        # If the line is an error log, add the tag 'error', remove the tag 'access', and change the type to 'apache-error'
+        # This was due to a bug in the rsyslog config that combined error and access logs
+        #
+        if [message] =~ /^ \[/ {
+            mutate {
+                remove_tag => [ "access" ]
+                add_tag => [ "error" ]
+                replace => [ "type" , "apache-error" ]
+            }
+        }
+    }
+
+    if [type] == "apache-access" {
+
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "%{COMBINEDAPACHELOG}" ]
+            add_tag => [ "grokked_apache-access" , "share_eng" ]
+        }
+
+        useragent { source => "agent" }
+
+        # Don't bother with geoip if the client is a private IP
+        if [clientip] !~ /(^127\.0\.0\.1)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/ {
+            geoip {
+                source => "clientip"
+                database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+            }
+        }
+    }
+
+    if [type] == "apache-error" {
+        grok {
+            patterns_dir => [ "/opt/logstash/patterns" ]
+            match => [ "message" , "\[(?<timestamp>%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR})\] \[%{WORD:severity}\] (\[client %{IP:clientip}\])?" ]
+            add_tag => [ "grokked_apache-error" , "share_eng" ]
+        }
+    }
+
+    if "apache" in [tags] {
+        if "_grokparsefailure" not in [tags] {
+
+            # Extract folder
+            if [request] =~ /\/.*\// {
+                grok { match => [ "request", "^/%{DATA:[file][folder]}/" ] }
+            }
+
+            # Extract filename
+            if [request] =~ /^((\/.*?)+)?\/(.*?)$/ {
+                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:[file][name]}($|\?)" ] }
+            }
+
+            # Extract extension
+            if [file][name] and [file][name] =~ /\./ {
+                grok {
+                    patterns_dir => [ "/opt/logstash/patterns" ]
+                    match => [ "[file][name]" , "\.%{EXTENSION:[file][extension]}" ]
+                }
+
+                mutate { lowercase => [ "[file][extension]" ] }
+            }
+
+        }
+
+        date {
+            match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" , "yyyy/MM/dd HH:mm:ss" , "EEE MMM dd HH:mm:ss yyyy" ]
+            add_tag => "dated_apache"
+        }
+
+        # Remove timestamp fields because it confuses ES
+        mutate { remove_field => [ "timestamp" ] }
+    }

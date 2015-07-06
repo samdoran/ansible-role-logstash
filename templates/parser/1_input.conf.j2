@@ -1,0 +1,30 @@
+    redis {
+        host => "{{ redis_host_1 }}"
+        port => 5678
+        data_type => "list"
+        key => "logstash"
+        codec => "json"
+        threads => 1
+    }
+
+    redis {
+        host => "{{ redis_host_2 }}"
+        port => 5678
+        data_type => "list"
+        key => "logstash"
+        codec => "json"
+        threads => 1
+    }
+{% if ansible_hostname == "logstash-02" %}
+    imap {
+        host => "mg.royall.com"
+        user => "productionroot"
+        password => "{{ productionroot_password }}"
+        secure => "true"
+        fetch_count => 100
+        check_interval => 300
+        delete => true
+        tags => [ "imap" ]
+        verify_cert => true
+    }
+{% endif %}

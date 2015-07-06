@@ -1,0 +1,51 @@
+    # apache access logs in the raw format, local0
+    file {
+        path => "/var/log/remote/**/apache/apache-access*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_apache-access"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        tags => [ "apache" , "access" ]
+        type => "apache-access"
+    }
+
+    # apache error logs in the raw format, local0
+    file {
+        path => "/var/log/remote/**/apache/apache-error*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_apache-error"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        tags => [ "apache" , "error" ]
+        type => "apache-error"
+    }
+
+    # nginx access logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/nginx/nginx-access*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-access"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        tags => [ "nginx" , "access" ]
+        type => "nginx-access"
+        codec => multiline {
+            charset => "US-ASCII"
+            pattern => "^(\s+)?%{IPORHOST}"
+            negate => true
+            what => previous
+        }
+    }
+
+    # nginx error logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/nginx/nginx-error*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_nginx-error"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        tags => [ "nginx" , "error" ]
+        type => "nginx-error"
+        codec => multiline {
+            charset => "US-ASCII"
+            pattern => "^(\s+)?%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}"
+            negate => true
+            what => previous
+        }
+    }

@@ -1,0 +1,22 @@
+    # Samba
+    if "samba" in [tags] {
+        grok {
+            match => [
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] %{GREEDYDATA} Authentication for user \[%{USER:user}\] -> \[%{USER}\] FAILED with error %{DATA:error}$",
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] %{GREEDYDATA} Allowed connection from%{SPACE}\(%{IP:clientip}\)$",
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] smbd/service.c:close_cnum\(%{INT}\) %{IP:clientip} \(%{IP}\) closed connection to service %{DATA:service}$",
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] smbd/service.c:make_connection_snum\(%{INT}\) %{IP:clients} \(%{IP}\) connect to service %{DATA:service} initially as user %{USER:user} \(uid=%{INT:uuid}, gid=%{INT:gid}\) \(pid %{INT:pid}\)$",
+                    "message" , "\[(?<eventtime>%{YEAR}/%{MONTHNUM}/%{MONTHDAY} %{TIME}), %{INT}\] "
+            ]
+        }
+
+        date {
+            match => [ "eventtime" , "yyyy/MM/dd HH:mm:ss" ]
+            timezone => "America/New_York"
+            add_tag => "dated_samba"
+        }
+
+        mutate {
+            add_field => { "program" => "smbd" }
+        }
+    }

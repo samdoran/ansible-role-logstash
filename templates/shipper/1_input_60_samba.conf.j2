@@ -1,0 +1,13 @@
+    # Samba logs
+    file {
+        path => "/var/log/remote/**/smbd/smbd*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_smbd"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => multiline {
+            pattern => "^\s"
+            what => "previous"
+        }
+        tags => [ "smbd" , "samba" ]
+        type => "syslog"
+    }

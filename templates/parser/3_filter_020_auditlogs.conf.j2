@@ -1,0 +1,30 @@
+   # --- Audit logs --- #
+    # if [type] == "audit" {
+
+    #     grok {
+    #         type => "audit"
+    #         patterns_dir => [ "/opt/logstash/patterns" ]
+    #         pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): user pid=%{NUMBER:audit_pid} uid=%{NUMBER:audit_uid} auid=%{NUMBER:audit_audid} ses=%{NUMBER:audit_ses} subj=(?<audit_subj>[\w:\.-]+\b) msg=(?<audit_msg>[\'\S]+) acct=%{QUOTEDSTRING:audit_acct} exe=%{QUOTEDSTRING:audit_exe} hostname=(?<audit_hostname>\?|%{IPORHOST}) addr=(?<audit_addr>\?|%{IPORHOST}) terminal=%{TTY:audit_terminal} res=%{WORD:audit_res}" ]
+    #         pattern => [ "type=%{WORD:audit_type} msg=audit\(%{NUMBER:audit_epoch}:%{NUMBER:audit_counter}\): arch=%{BASE16NUM:audit_arch} syscall=%{NUMBER:audit_syscall} per=%{NUMBER:audit_per} success=%{WORD:audit_success} exit=%{NUMBER:audit_exit} a0=%{NUMBER:audit_a0} a1=%{NUMBER:audit_a1} a2=%{NUMBER:audit_a2} a3=%{BASE16NUM:audit_a3} items=%{NUMBER:audit_items} ppid=%{NUMBER:audit_ppid} pid=%{NUMBER:audit_pid} auid=%{NUMBER:audit_auid} uid=%{NUMBER:audit_uid} gid=%{NUMBER:audit_gid} euid=%{NUMBER:euid} suid=%{NUMBER:suid} fsuid=%{NUMBER:fsuid} egid=%{NUMBER:egid} sgid=%{NUMBER:sgid} fsgid=%{NUMBER:
+    #         ty=(?<audit_tty>\(none\)|%{TTY}) ses=%{NUMBER:audit_ses} comm=%{QUOTEDSTRING:audit_comm} exe=%{QUOTEDSTRING:audit_exe} subj=(?<audit_subj>[\w:\.-]+\b) key=%{QUOTEDSTRING:audit_key}" ]
+    #         add_tag => "grokked"
+    #     }
+
+    #     date {
+    #         match => [ "audit_epoch" , "UNIX_MS" ]
+    #         add_tag => "dated"
+    #     }
+    # }
+
+    # --- SNMP Logs --- #
+    if "snmpd" in [tags] {
+        # Drop noisy messages and messages from expected SNMP query devices
+        if [message] =~ /(truncating integer)|192\.168\.35\.7|192\.168\.26\.87|192\.168\.26\.254|172\.19\.0\.7|192\.168\.65\.87|172\.16\.1\.83|127\.0\.0\.1/ { drop {} }
+
+        # Extract IP address that performed the SNMP query
+        if [message] =~ /UDP:/ {
+            grok {
+                match => [ "message" , "UDP: \[%{IP:snmp_source_ip}\]:%{INT:snmp_source_port}" ]
+            }
+        }
+    }
