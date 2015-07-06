@@ -1,0 +1,13 @@
+    elasticsearch {
+        bind_host => "{{ ansible_default_ipv4.address }}"
+        # Specifying a custom bind_port causes LS to join the cluster but no
+        # data is sent. Need to file a bug on this.
+        # bind_port => {{ es_http_port }}
+        cluster => "{{ es_cluster_name }}"
+        node_name => "{{ ansible_hostname }}"
+        host => "{{ groups[es_group_name][0] }}"
+        # port => "{{ es_transport_port }}"
+        protocol => "node"
+        flush_size => 500
+        workers => {{ ansible_processor_count }}
+    }

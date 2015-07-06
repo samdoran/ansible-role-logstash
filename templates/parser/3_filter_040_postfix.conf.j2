@@ -1,0 +1,19 @@
+    # --- Postfix logs --- #
+    if "postfix" in [tags] or "dkimproxy.out" in [tags] {
+        kv {
+            trim => "<>,"
+        }
+
+        mutate {
+            add_field => {
+                "_ttl" => "10d"
+            }
+        }
+
+        if "postfix" in [tags] {
+            grok {
+                match => [ "message" , "postfix/?%{DATA:subprogram}\[" ]
+                add_tag => [ "grokked" ]
+            }
+        }
+    }

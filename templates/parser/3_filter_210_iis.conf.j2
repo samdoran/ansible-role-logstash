@@ -1,0 +1,55 @@
+    # --- IIS --- #
+
+    if "iis" in [tags] {
+        # Drop comment lines from IIS
+        if [message] =~ /^#/ {
+            drop {}
+        }
+
+        if "iis5" in [tags] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => ["message", "%{IIS5}"]
+                add_tag => [ "grokked" ]
+            }
+        }
+
+        if "iis6" in [tags] {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => ["message", "%{IIS6}"]
+                add_tag => [ "grokked" ]
+            }
+        }
+
+        # Change '+' to ' ' since IIS uses '+' as a delimeter in the
+        # user agent string
+        mutate {
+            gsub => [ agent , "\+" , " " ]
+        }
+
+        useragent { source => "agent" }
+
+        geoip {
+            source => "clientip"
+            database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+        }
+
+        # Extract first folder after domain
+        if [request] =~ /\/.*\// {
+            grok {
+                match => ["request", "/%{DATA:[file][folder]}/"]
+            }
+        }
+
+        if "_grokparsefailure" not in [tags] {
+            date {
+                match => [ "eventtime",
+                    "yy-MM-dd HH:mm:ss",
+                    "yyyy-MM-dd HH:mm:ss"
+                ]
+                add_tag => "dated"
+                remove_field => [ "eventtime" ]
+            }
+        }
+    }

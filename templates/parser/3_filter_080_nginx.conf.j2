@@ -1,0 +1,69 @@
+    # --- Nginx logs --- #
+    if "nginx" in [tags] {
+        if [type] == "nginx-access" {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "(?m)%{NGINX_ROYALL}" ]
+                add_tag => [ "grokked", "share_eng" ]
+            }
+
+            if [us] {
+                grok {
+                    match => [ "us" , "%{UPSTREAMS}" ]
+                    add_tag => "upstream_grok"
+                    tag_on_failure => [ "upstreams_grokparsefail" ]
+                }
+            }
+
+            useragent { source => "agent" }
+
+            geoip {
+                source => "clientip"
+                database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+            }
+        }
+
+        if [type] == "nginx-error" {
+            grok {
+                patterns_dir => [ "/opt/logstash/patterns" ]
+                match => [ "message" , "(?m)%{NGINX_ERROR}" ]
+                add_tag => [ "grokked" , "share_eng" ]
+            }
+
+            geoip {
+                source => "clientip"
+                database => "/opt/logstash/vendor/geoip/GeoLiteCity.dat"
+            }
+        }
+
+        if "_grokparsefailure" not in [tags] {
+
+            # Extract folder
+            if [request] =~ /\/.*\// {
+                grok { match => [ "request", "^/%{DATA:[file][folder]}/" ] }
+            }
+
+            # Extract filename
+            if [request] =~ /^((\/.*?)+)?\/(.*?)$/ {
+                grok { match => [ "request" , "^((/%{DATA})+)?/%{DATA:[file][name]}($|\?)" ] }
+            }
+
+            # Extract extension
+            if [file][name] and [file][name] =~ /\./ {
+                grok {
+                    patterns_dir => [ "/opt/logstash/patterns" ]
+                    match => [ "[file][name]" , "\.%{EXTENSION:[file][extension]}" ]
+                }
+
+                mutate { lowercase => [ "[file][extension]" ] }
+            }
+        }
+
+        date {
+            match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" , "yyyy/MM/dd HH:mm:ss" ]
+            add_tag => "dated"
+        }
+
+        # Remove timestamp fields because it confuses ES
+        mutate { remove_field => [ "timestamp" ] }
+    }
