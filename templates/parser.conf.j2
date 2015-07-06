@@ -72,6 +72,11 @@ filter {
         mutate { add_tag => "aerohive" }
     }
 
+    # Hardwick Day APs
+    if [host] =~ /10\.16\.5\.13[45]/ {
+        mutate { add_tag => "aerohive" }
+    }
+
 
     # --- Audit logs --- #
     # if [type] == "audit" {
@@ -585,11 +590,19 @@ filter {
 
     # Change IP in host field to friendly hostname
     if "aerohive" in [tags] {
-        grok { match => [ "host" , "192\.168\.40\.%{INT:last_octet}" ] }
+        grok { match => [
+                "host" , "192\.168\.40\.%{INT:last_octet}",
+                "host" , "10\.\16\.5\.%{INT:last_octet}"
+                ]
+            }
 
         if [last_octet] == "155" {
             mutate {
                 replace => [ "host" , "AP330-%{last_octet}" ]
+            }
+        } else if [last_octet] =~ /13[45]/ {
+            mutate {
+                replace => [ "host" , "AP230-%{last_octet}" ]
             }
         } else {
             mutate {
@@ -828,7 +841,7 @@ filter {
 
         # Remove program field if it starts with a long integer
         # Meant to remove the IOS program, which is a pretty useless number
-        if [program] =~ /^\d{4,}/ {
+        if [program] =~ /^\d{3,}/ {
             mutate{
                 remove_field => [ "program" ]
             }
