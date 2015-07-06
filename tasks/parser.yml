@@ -1,16 +1,31 @@
 ---
 - name: Copy logstash parser configuration
-  template: src=parser.conf.j2 dest=/etc/logstash/conf.d/parser.conf owner=root group=root mode=0644
+  template:
+    src: parser.conf.j2
+    dest: /etc/logstash/conf.d/parser.conf
+    owner: root
+    group: root
+    mode: 0644
   tags: [ "logstash" , "config" , "parserconf" ]
   notify: restart logstash
 
 - name: Copy logstash patterns
-  copy: src=patterns dest=/opt/logstash/ owner=logstash group=logreader mode=0644 directory_mode=755
+  copy:
+    src: patterns
+    dest: /opt/logstash/
+    owner: logstash
+    group: logreader
+    mode: 0644
+    directory_mode: 755
   tags: [ "logstash" , "config" , "parserconf" , "patterns" ]
   notify: restart logstash
 
 - name: Patch /opt/logstash/lib/logstash/inputs/imap.rb until logstash 1.4.3 is released
-  lineinfile: state=present dest=/opt/logstash/lib/logstash/inputs/imap.rb regexp='value = transcode_to_utf8\(header.decoded' line='        value = transcode_to_utf8(header.decoded.to_s)'
+  lineinfile:
+    state: present
+    dest: /opt/logstash/lib/logstash/inputs/imap.rb
+    regexp: 'value = transcode_to_utf8\(header.decoded'
+    line: '        value = transcode_to_utf8(header.decoded.to_s)'
   when: ansible_hostname == 'logstash-02'
   tags: [ "logstash" , "config" , "parserconf" , "patterns" , "patch" ]
   notify: restart logstash

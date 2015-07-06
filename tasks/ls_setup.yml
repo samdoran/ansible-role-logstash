@@ -1,26 +1,45 @@
 ---
 - name: Install logstash
-  yum: name=logstash-contrib state=latest
+  yum:
+    name: logstash-contrib
+    state: latest
   tags: logstash
 
 - name: Enable Logstash
-  service: name=logstash enabled=yes state=started
+  service:
+    name: logstash
+    enabled: yes
+    state: started
   tags: logstash
 
 - name: Set ownership on /var/log/logstash
-  file: path=/var/log/logstash owner=logstash group=logstash recurse=yes
+  file:
+    path: /var/log/logstash
+    owner: logstash
+    group: logstash
+    recurse: yes
   tags: logstash
 
 - name: Create logreader group
-  group: name=logreader gid=520
+  group:
+    name: logreader
+    gid: 520
   tags: logstash
 
 - name: Add logstash to logreader group
-  user: name=logstash append=yes groups=logreader
+  user:
+    name: logstash
+    append: yes
+    groups: logreader
   tags: logstash
 
 - name: Copy logstash sysconfig
-  template: src=sysconfig-logstash.j2 dest=/etc/sysconfig/logstash owner=root group=root mode=0644
+  template:
+    src: sysconfig-logstash.j2
+    dest: /etc/sysconfig/logstash
+    owner: root
+    group: root
+    mode: 0644
   tags: [ 'logstash' , 'config' ]
   notify: restart logstash
 
