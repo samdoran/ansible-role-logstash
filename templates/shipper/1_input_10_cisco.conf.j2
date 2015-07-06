@@ -1,0 +1,10 @@
+    # Cisco IOS logs
+    file {
+        path => [ "/var/log/remote/*/*.cisco.json.log" ]
+        sincedb_path => "/opt/logstash/sincedb/sincedb_cisco"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "json"
+        tags => [ "cisco" , "network" ]
+        type => "cisco"
+    }

@@ -1,0 +1,10 @@
+    # BackupPC logs in their raw format, local0
+    file {
+        path => "/var/log/remote/**/BackupPC/BackupPC*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_backuppc"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "backuppc" ]
+        type => "syslog"
+    }

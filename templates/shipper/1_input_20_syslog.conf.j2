@@ -1,0 +1,21 @@
+    # All standard messages from rsyslog, local2
+    file {
+        path => "/var/log/remote/**/*.syslog.json.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_syslog"
+        exclude => [ "*.gz" , "postfix-*" , "dkimproxy\.out-*" ]
+        start_position => "beginning"
+        codec => "json"
+        tags => [ "syslog" ]
+        type => "syslog"
+    }
+
+    # All messages already written in JSON from the app, local1
+    file {
+        path => "/var/log/remote/**/*.raw.json.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_jsonlog"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "json"
+        tags => [ "jsonlog" ]
+        type => "jsonlog"
+    }
