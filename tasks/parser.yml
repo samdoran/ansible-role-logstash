@@ -16,9 +16,22 @@
     owner: logstash
     group: logreader
     mode: 0644
-    directory_mode: 755
+    directory_mode: 0755
   tags: [ "logstash" , "config" , "parserconf" , "patterns" ]
   notify: restart logstash
+
+- name: Copy eleasticsearch templates
+  copy:
+    src: "{{ item }}"
+    dest: /opt/logstash/templates/
+    owner: logstash
+    group: logreader
+    mode: 0644
+    directory_mode: 0755
+  with_items:
+    - netflow-es-template.json
+    - netflow9.yml
+  tags: [ "logstash" , "config" , "parserconf" , "templates" ]
 
 - name: Patch /opt/logstash/lib/logstash/inputs/imap.rb until logstash 1.4.3 is released
   lineinfile:
