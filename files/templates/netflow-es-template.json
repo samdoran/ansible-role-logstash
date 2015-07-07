@@ -12,8 +12,8 @@
           "properties": {
             "version": { "index": "analyzed", "type": "integer" },
             "flow_seq_num": { "index": "not_analyzed", "type": "long" },
-            *"flowset_id": { "index": "analyzed", "type": "long" },
-            *"flow_sampler_id": { "index": "not_analyzed", "type": "long" },
+            // *"flowset_id": { "index": "analyzed", "type": "long" },
+            // *"flow_sampler_id": { "index": "not_analyzed", "type": "long" },
             "engine_type": { "index": "not_analyzed", "type": "integer" },
             "engine_id": { "index": "not_analyzed", "type": "integer" },
             "sampling_algorithm": { "index": "not_analyzed", "type": "integer" },
