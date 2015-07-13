@@ -1,7 +1,7 @@
 ---
 - name: Install logstash
   yum:
-    name: logstash-contrib
+    name: logstash
     state: latest
   tags: logstash
 

@@ -1,8 +1,32 @@
 ---
+- name: Get current Logstash version
+  shell: rpm -q logstash | cut -d '-' -f 2
+  changed_when: False
+  ignore_errors: True
+  register: logstash_version
+  tags: [ "logstash" , "yum" ]
+
+- name: Remove old repos
+  file:
+    path=/etc/yum.repos.d/logstash-1.{{ item }}.repo
+    state=absent
+  with_sequence:
+    start=1
+    end=4
+    stride=1
+  tags: [ "logstash" , "yum" ]
+
+- name: Remove logstash-contrib
+  yum:
+    name: logstash-contrib
+    state: absent
+  when: "{{ logstash_version | float }} < 1.5"
+  tags: [ "logstash" , "yum" ]
+
 - name: Copy logstash repo
   copy:
-    src: logstash-1.4.repo
-    dest: /etc/yum.repos.d/logstash-1.4.repo
+    src: logstash-1.5.repo
+    dest: /etc/yum.repos.d/logstash-1.5.repo
     owner: root
     group: root
     mode: 0644
