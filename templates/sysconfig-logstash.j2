@@ -9,7 +9,7 @@
 #LS_HOME=/var/lib/logstash
 
 # Arguments to pass to logstash agent
-#LS_OPTS=""
+#LS_OPTS="--debug"
 
 # Arguments to pass to java
 {% if 'ls_parser' in group_names or 'ls_shipper' in group_names %}
@@ -41,4 +41,4 @@ LS_OPEN_FILES={{ logstash_open_files }}
 {% endif %}
 
 # Nice level
-#LS_NICE=19
+LS_NICE=0
