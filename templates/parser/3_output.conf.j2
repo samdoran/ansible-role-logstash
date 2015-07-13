@@ -1,19 +1,21 @@
     if "netflow" in [tags] {
         elasticsearch {
-            bind_host => "{{ ansible_default_ipv4.address }}"
             cluster => "{{ es_cluster_name }}"
             node_name => "{{ ansible_hostname }}"
             host => "{{ groups[es_group_name][0] }}"
             index => "logstash-netflow-%{+YYYY.MM.dd}"
             template => "/opt/logstash/templates/netflow-es-template.json"
             template_name => "netflow"
-            protocol => "node"
-            flush_size => 500
+            template_overwrite => true
+            protocol => "http"
+            ssl => true
+            ssl_certificate_verification => false
             workers => {{ ansible_processor_count }}
+            # flush_size => 500
         }
     } else {
         elasticsearch {
-            bind_host => "{{ ansible_default_ipv4.address }}"
+            # bind_host => "{{ ansible_default_ipv4.address }}"
             # Specifying a custom bind_port causes LS to join the cluster but no
             # data is sent. Need to file a bug on this.
             # bind_port => {{ es_http_port }}
@@ -21,8 +23,10 @@
             node_name => "{{ ansible_hostname }}"
             host => "{{ groups[es_group_name][0] }}"
             # port => "{{ es_transport_port }}"
-            protocol => "node"
-            flush_size => 500
+            protocol => "http"
+            ssl => true
+            ssl_certificate_verification => false
+            # flush_size => 500
             workers => {{ ansible_processor_count }}
         }
     }
