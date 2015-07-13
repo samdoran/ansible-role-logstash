@@ -4,7 +4,7 @@
         data_type => "list"
         key => "logstash"
         codec => "json"
-        threads => 1
+        threads => {{ ansible_processor_count }}
     }
 
     redis {
@@ -13,7 +13,7 @@
         data_type => "list"
         key => "logstash"
         codec => "json"
-        threads => 1
+        threads => {{ ansible_processor_count }}
     }
 {% if ansible_hostname == "logstash-02" %}
     imap {
