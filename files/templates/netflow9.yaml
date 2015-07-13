@@ -272,3 +272,15 @@
 104:
 - :string
 - :l2_packet_section_data
+256:
+- :uint16
+- :ether_type
+260:
+- :string
+- :date_time_seconds
+263:
+- :uint8
+- :message_scope
+265:
+- :string
+- :min_flow_start_seconds
