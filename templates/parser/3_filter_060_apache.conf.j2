@@ -31,7 +31,13 @@
         useragent { source => "agent" }
         geoip { source => "clientip" }
 
+        # Copy clientip to a new field, then perform a reverse lookup on it
+        mutate {
+            add_field => { "clientfqdn" => "%{clientip}"}
         }
+        dns {
+            reverse => [ "clientfqdn" ]
+            action => "replace"
         }
 
         if "_grokparsefailure" not in [tags] {
