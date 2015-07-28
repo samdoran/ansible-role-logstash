@@ -1,0 +1,5 @@
+APACHEACCESS %{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:eventtime}\] "(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent}
+APACHEERROR \[(?<eventtime>%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR})\] \[%{WORD:severity}\] (\[client %{IP:clientip}\])?%{DATA:rawrequest}$
+APACHESSLREQUEST \[%{HTTPDATE:eventtime}\] %{IP:clientip} %{WORD:[tls][protocol]} %{NOTSPACE:[tls][algorithm]} "(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response}( %{NUMBER:bytes}|-)?
+APACHESSLACCESS %{IP:clientip} - - \[%{HTTPDATE:eventtime}\] "(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response}( %{NUMBER:bytes}|-)?
+APACHEREWRITE %{IP:clientip} - - \[(?<eventtime>%{MONTHDAY}/%{MONTH}/%{YEAR}:%{TIME} --?%{INT})\] %{GREEDYDATA:request}

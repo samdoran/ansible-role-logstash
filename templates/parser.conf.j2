@@ -7,20 +7,35 @@ input {
 filter {
 
 {% include 'parser/2_filter_001_tagthings.conf.j2' %}
+
 {% include 'parser/3_filter_020_auditlogs.conf.j2' %}
+
 {% include 'parser/3_filter_040_postfix.conf.j2' %}
+
 {% include 'parser/3_filter_060_apache.conf.j2' %}
+
 {% include 'parser/3_filter_080_nginx.conf.j2' %}
+
 {% include 'parser/3_filter_100_syslog.conf.j2' %}
+
 {% include 'parser/3_filter_120_tacacs.conf.j2' %}
+
 {% include 'parser/3_filter_140_backuppc.conf.j2' %}
+
 {% include 'parser/3_filter_160_mongo.conf.j2' %}
+
 {% include 'parser/3_filter_180_samba.conf.j2' %}
+
 {% include 'parser/3_filter_200_eventlogs.conf.j2' %}
+
 {% include 'parser/3_filter_205_exchange.conf.j2' %}
+
 {% include 'parser/3_filter_210_iis.conf.j2' %}
+
 {% include 'parser/3_filter_220_aerohive.conf.j2' %}
+
 {% include 'parser/3_filter_240_cisco.conf.j2' %}
+
 
 }
 

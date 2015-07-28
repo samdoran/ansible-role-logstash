@@ -1,21 +1,11 @@
-    # apache access logs in the raw format, local0
+    # apache logs in the raw format, local0
     file {
-        path => "/var/log/remote/**/apache/apache-access*.raw.log"
-        sincedb_path => "/opt/logstash/sincedb/sincedb_apache-access"
+        path => "/var/log/remote/**/apache/*.raw.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_apache"
         exclude => [ "*.gz" ]
         start_position => "beginning"
-        tags => [ "apache" , "access" ]
-        type => "apache-access"
-    }
-
-    # apache error logs in the raw format, local0
-    file {
-        path => "/var/log/remote/**/apache/apache-error*.raw.log"
-        sincedb_path => "/opt/logstash/sincedb/sincedb_apache-error"
-        exclude => [ "*.gz" ]
-        start_position => "beginning"
-        tags => [ "apache" , "error" ]
-        type => "apache-error"
+        tags => [ "apache" ]
+        add_field => { "program" => "apache" }
     }
 
     # nginx access logs in their raw format, local0
@@ -32,6 +22,7 @@
             negate => true
             what => previous
         }
+        add_field => { "program" => "nginx" }
     }
 
     # nginx error logs in their raw format, local0
@@ -48,4 +39,5 @@
             negate => true
             what => previous
         }
+        add_field => { "program" => "nginx" }
     }
