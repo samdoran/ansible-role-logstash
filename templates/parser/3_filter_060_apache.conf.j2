@@ -2,48 +2,38 @@
     if "apache" in [tags] {
         # Drop stdout from processes run by apache
         if [message] =~ /^\s*\b\w+\b:/ { drop {} }
-    }
 
-    if [type] == "apache-access" {
-        # If the line is an error log, add the tag 'error', remove the tag 'access', and change the type to 'apache-error'
-        # This was due to a bug in the rsyslog config that combined error and access logs
-        #
-        if [message] =~ /^ \[/ {
+        # Add tags based on path. The paths are created based on rsyslog tags
+        # by rsyslog.
+        if [path] =~ /apache-access/ {
             mutate {
-                remove_tag => [ "access" ]
-                add_tag => [ "error" ]
-                replace => [ "type" , "apache-error" ]
+                add_tag => [ "access" ]
             }
         }
-    }
 
-    if [type] == "apache-access" {
+        if [path] =~ /apache-error/ {
+            mutate {
+                add_tag => [ "error" ]
+            }
+        }
 
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "%{COMBINEDAPACHELOG}" ]
-            add_tag => [ "grokked_apache-access" , "share_eng" ]
+            match => [
+                "message" , "%{APACHEACCESS}",
+                "message" , "%{APACHEERROR}",
+                "message" , "%{APACHESSLREQUEST}",
+                "message" , "%{APACHESSLACCESS}",
+                "message" , "%{APACHEREWRITE}"
+            ]
         }
 
         useragent { source => "agent" }
+        geoip { source => "clientip" }
 
-        # Don't bother with geoip if the client is a private IP
-        if [clientip] !~ /(^127\.0\.0\.1)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/ {
-            geoip {
-                source => "clientip"
-            }
         }
-    }
-
-    if [type] == "apache-error" {
-        grok {
-            patterns_dir => [ "/opt/logstash/patterns" ]
-            match => [ "message" , "\[(?<timestamp>%{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR})\] \[%{WORD:severity}\] (\[client %{IP:clientip}\])?" ]
-            add_tag => [ "grokked_apache-error" , "share_eng" ]
         }
-    }
 
-    if "apache" in [tags] {
         if "_grokparsefailure" not in [tags] {
 
             # Extract folder
@@ -69,10 +59,14 @@
         }
 
         date {
-            match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" , "yyyy/MM/dd HH:mm:ss" , "EEE MMM dd HH:mm:ss yyyy" ]
-            add_tag => "dated_apache"
+            match => [ "eventtime",
+                        "dd/MMM/yyyy:HH:mm:ss Z",
+                        "dd/MMM/yyyy:HH:mm:ss -Z",
+                        "yyyy/MM/dd HH:mm:ss",
+                        "EEE MMM dd HH:mm:ss yyyy"
+            ]
         }
 
-        # Remove timestamp fields because it confuses ES
-        mutate { remove_field => [ "timestamp" ] }
+        # Remove eventtime field
+        mutate { remove_field => [ "eventtime" ] }
     }
