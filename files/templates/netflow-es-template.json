@@ -4,6 +4,24 @@
   "mappings" : {
     "_default_" : {
       "_all" : {"enabled" : false},
+      "dynamic_templates" : [ {
+          "ip" : {
+            "match" : "netflow.ip*",
+            "match_mapping_type" : "ip",
+            "mapping" : {
+              "index" : "analyzed",
+              "omit_norms" : true,
+              "type" : "ip",
+              "fields" : {
+                "raw" : {
+                  "ignore_above" : 256,
+                  "index" : "not_analyzed",
+                  "type" : "string"
+                }
+              }
+            },
+          }
+        } ],
       "properties" : {
         "netflow": {
           "dynamic": true,
@@ -41,4 +59,3 @@
       }
     }
   }
-}
