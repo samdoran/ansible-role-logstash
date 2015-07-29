@@ -1,0 +1,22 @@
+---
+- name: Copy update netflow gem
+  copy:
+    src: logstash-codec-netflow-0.1.6.gem
+    dest: /opt/logstash/
+    owner: logstash
+    group: logreader
+    mode: 0644
+  become_user: logstash
+
+- name: Uninstall current logstash-codec-netflow
+  command: /opt/logstash/bin/plugin uninstall logstash-codec-netflow
+  args:
+    removes: /opt/logstash/vendor/bundle/jruby/1.9/gems/logstash-codec-netflow-1.0.0
+  become_user: logstash
+
+- name: Install new logstash-codec-netflow
+  command: /opt/logstash/bin/plugin install /opt/logstash/logstash-codec-netflow-0.1.6.gem
+  args:
+    creates: /opt/logstash/vendor/local_gems
+  become_user: logstash
+  notify: restart logstash
