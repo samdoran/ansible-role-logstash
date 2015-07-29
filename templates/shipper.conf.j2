@@ -1,13 +1,21 @@
 input {
 
 {% include 'shipper/1_input_01_listeners.conf.j2' %}
+
 {% include 'shipper/1_input_10_cisco.conf.j2' %}
+
 {% include 'shipper/1_input_20_syslog.conf.j2' %}
+
 {% include 'shipper/1_input_30_webserver.conf.j2' %}
+
 {% include 'shipper/1_input_40_backuppc.conf.j2' %}
+
 {% include 'shipper/1_input_50_mongo.conf.j2' %}
+
 {% include 'shipper/1_input_60_samba.conf.j2' %}
+
 {% include 'shipper/1_input_70_iis-exchange.conf.j2' %}
+
 
 }
 
@@ -28,4 +36,5 @@ filter {
 
 output {
 {% include 'shipper/3_output.conf.j2' %}
+
 }

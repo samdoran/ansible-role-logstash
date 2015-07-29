@@ -27,3 +27,22 @@
         codec => "plain"
         tags => [ "debug" ]
     }
+
+    udp {
+        port => 2055
+        codec => netflow {
+            versions => [9]
+            definitions => "/opt/logstash/templates/netflow9.yaml"
+        }
+        tags => [ "netflow" ]
+    }
+
+    # udp {
+    #     port => 2056
+    #     codec => netflow {
+    #         versions => [9, 10]
+    #         # definitions => "/opt/logstash/templates/netflow9.yaml"
+    #     }
+    #     tags => [ "debug" ]
+    # }
+

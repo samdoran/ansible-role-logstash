@@ -1,7 +1,7 @@
 ---
 - name: Install logstash
   yum:
-    name: logstash-contrib
+    name: logstash
     state: latest
   tags: logstash
 
@@ -26,6 +26,14 @@
     gid: 520
   tags: logstash
 
+- name: Create sincedb directory
+  file:
+    state: directory
+    path: /opt/logstash/sincedb
+    owner: logstash
+    group: logstash
+  tags: logstash
+
 - name: Add logstash to logreader group
   user:
     name: logstash
@@ -43,3 +51,13 @@
   tags: [ 'logstash' , 'config' ]
   notify: restart logstash
 
+- name: Copy templates
+  copy:
+    src: templates
+    dest: /opt/logstash/
+    owner: logstash
+    group: logreader
+    mode: 0644
+    directory_mode: 0755
+  notify: restart logstash
+  tags: [ "logstash" , "config" , "parserconf" , "templates" ]

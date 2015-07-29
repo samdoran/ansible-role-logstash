@@ -9,3 +9,4 @@
 - include: ls_setup.yml
 - { include: parser.yml, when: '"ls_parser" in group_names'}
 - { include: shipper.yml, when: '"ls_shipper" in group_names'}
+- { include: netflow-gem.yml, tags: [ 'gem' ] }
