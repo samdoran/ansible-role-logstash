@@ -1,0 +1,18 @@
+    # --- Netflow --- #
+    if "netflow" in [tags] {
+
+        # Translate destination port numbers into service name and store in a new field
+        translate {
+            field => "[netflow][l4_dst_port]"
+            destination => "[netflow][l4_dst_service]"
+            dictionary_path => "/opt/logstash/templates/netflow_services.yaml"
+        }
+
+        # Translate source port numbers into service name and store in a new field
+        translate {
+            field => "[netflow][l4_src_port]"
+            destination => "[netflow][l4_src_service]"
+            dictionary_path => "/opt/logstash/templates/netflow_services.yaml"
+        }
+
+    }
