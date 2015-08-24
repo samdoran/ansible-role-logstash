@@ -272,6 +272,9 @@
 104:
 - :string
 - :l2_packet_section_data
+147:
+- :string
+- :ssid
 256:
 - :uint16
 - :ether_type

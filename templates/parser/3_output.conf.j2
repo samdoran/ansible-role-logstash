@@ -3,7 +3,7 @@
             cluster => "{{ es_cluster_name }}"
             node_name => "{{ ansible_hostname }}"
             host => "{{ groups[es_group_name][0] }}"
-            index => "logstash-netflow-%{+YYYY.MM.dd}"
+            index => "netflow-%{+YYYY.MM.dd}"
             template => "/opt/logstash/templates/netflow-es-template.json"
             template_name => "netflow"
             template_overwrite => true

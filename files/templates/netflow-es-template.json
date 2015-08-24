@@ -1,6 +1,6 @@
 {
-  "template" : "logstash-netflow-*",
-  "order": 1,
+  "template" : "*netflow-*",
+  "order": 5,
   "mappings" : {
     "_default_" : {
       "_all" : {"enabled" : false},
@@ -19,10 +19,12 @@
                   "type" : "string"
                 }
               }
-            },
+            }
           }
-        } ],
+        } ] ,
       "properties" : {
+        "@version": { "index": "analyzed", "type": "integer"},
+        "@timestap": { "index": "analyzed", "type": "date"},
         "netflow": {
           "dynamic": true,
           "type": "object",
@@ -59,3 +61,4 @@
       }
     }
   }
+}
