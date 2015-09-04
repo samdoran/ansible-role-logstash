@@ -13,20 +13,16 @@ Requirements
 Role Variables
 --------------
 
-**logstash_open_files** Set ulimit to this number for logstash process (Default: 65535)
-
-**redis_host_1** IP or hostname for first redis server
-
-**redis_host_2** IP or hostname for first second server
-
-**logstash_ssl_crt_path** Path where SSL cert will be copied (Default: /etc/pki/tls/certs)
-
-**logstash_ssl_key_path** Path where SSL private key will be copied (Default: /etc/pki/tls/private)
-
-**logsasth_ssl_crt** Public SSL cert
-
-**logstash_ssl_key** Private SSL key. I recommend encrypting this using `ansible-vault`
-
+| Name                     | Default | Descrription |
+|---------------------------|--------|---------------|
+| `logstash_open_files`    | 65535    | Set ulimit to this number for logstash process   |
+| `redis_host_1`    |  null   |  IP or hostname for first redis server |
+| `redis_host_2`    |  null   | IP or hostname for first second server  |
+| `logstash_ssl_crt_path`    | /etc/pki/tls/certs    | Path where SSL cert will be copied   |
+| `logstash_ssl_key_path`    | /etc/pki/tls/private    | Path where SSL private key will be copied   |
+| `logsasth_ssl_crt`    |  null   |  Public SSL cert |
+| `logstash_ssl_key`    |  null   |  Private SSL key. I recommend storing this in an Ansible vault |
+| `logstash_plugins` | undefined | List of plugins to install |
 
 Dependencies
 ------------
