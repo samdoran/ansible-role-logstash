@@ -1,3 +1,14 @@
+    # TACACS log because the file input module sucks
+    file {
+        path => "/var/log/remote/**/tac_plus/*.syslog.json.log"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_tacacs"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "json"
+        tags => [ "tac_plus" ]
+        type => "syslog"
+    }
+
     # All standard messages from rsyslog, local2
     file {
         path => "/var/log/remote/**/*.syslog.json.log"
