@@ -6,6 +6,8 @@ input {
 
 {% include 'shipper/1_input_20_syslog.conf.j2' %}
 
+{% include 'shipper/1_input_25_mssql_csv.conf.j2' %}
+
 {% include 'shipper/1_input_30_webserver.conf.j2' %}
 
 {% include 'shipper/1_input_40_backuppc.conf.j2' %}
@@ -30,6 +32,13 @@ filter {
         mutate {
             replace => [ "host" , "%{source_host}" ]
             remove_field => [ "source_host" ]
+        }
+    }
+
+    # Remove header lines from CSV files
+    if [type] == "csv" {
+        if [message] =~ /^Server/ {
+            drop {}
         }
     }
 }
