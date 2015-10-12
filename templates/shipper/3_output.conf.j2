@@ -12,6 +12,6 @@
             port => "5678"
             data_type => "list"
             key => "logstash"
-            workers => {{ ansible_processor_count // 3 }}
+            # workers => {{ ansible_processor_count // 3 }}
         }
     }
