@@ -1,23 +1,31 @@
     # --- MS SQL Error logs  --- #
     if [type] == "csv" {
-        if [tags] == "mssql" {
+        if "mssql" in [tags] {
             csv {
-                columns => [ "host", "eventtime", "errormessage" ]
+                columns => [ "host", "eventtime", "[file][path]", "errormessage" ]
             }
 
-            grok {
-                match => [ "errormessage", "%{WORD:drive}:%{NOTSPACE:path},SQL Server has encountered %{INT:occurrences} occurrence\(s\) of I/O requests taking longer than %{INT:seconds} seconds" ]
+            # Extract number of occurences and time in seconds
+            if "SQL Server" in [errormessage] {
+                grok {
+                    match => { "errormessage" => "SQL Server has encountered %{INT:occurrences} occurrence\(s\) of I/?O requests taking longer than %{INT:seconds} seconds" }
+                }
             }
 
-            # Extract filename and extension
-            grok {
-                match => [ "path", "%{WORD:[file][name]}\.%{WORD:[file][extension]}" ]
-
+            # Extract drive letter, filename, and extension
+            if [file][path] {
+                grok {
+                    match => { "[file][path]" => "^(?<drive>[A-Za-z]):(%{DATA}\\)+%{NOTSPACE:[file][name]}\.%{NOTSPACE:[file][extension]}" }
+                }
             }
 
             # Extract school name
-            grok {
-                match => [ "[file][name]", "(?<school>[A-Za-z]+)_"]
+            if [file][name] =~ /_[Dd]ata/  {
+                if [file][name] !~ /tempdev/ {
+                    grok {
+                        match => { "[file][name]" => "(?<school>[A-Za-z]+)_" }
+                    }
+                }
             }
 
             mutate {
