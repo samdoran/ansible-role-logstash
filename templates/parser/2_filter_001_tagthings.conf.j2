@@ -11,7 +11,7 @@
     }
 
     # Capture actual source host from file path
-    if [path] =~ /\/var\/log\/remote/ and type != "csv" {
+    if [path] =~ /\/var\/log\/remote/ and [type] != "csv" {
         grok { match => [ "path" , "/var/log/remote/%{DATA:actual_source_host}/" ] }
 
         if [host] != [actual_source_host] {
