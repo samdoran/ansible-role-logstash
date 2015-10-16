@@ -57,13 +57,14 @@
             }
 
             # Copy clientip to a new field, then perform a reverse lookup on it
-            mutate {
-                add_field => { "clientfqdn" => "%{clientip}"}
-            }
-            dns {
-                reverse => [ "clientfqdn" ]
-                action => "replace"
-            }
+            # This had to be removed beceause it slowed processing to a crawl
+            # mutate {
+            #     add_field => { "clientfqdn" => "%{clientip}"}
+            # }
+            # dns {
+            #     reverse => [ "clientfqdn" ]
+            #     action => "replace"
+            # }
         }
 
         date {

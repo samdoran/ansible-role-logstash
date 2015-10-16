@@ -8,7 +8,14 @@
             template_name => "netflow"
             template_overwrite => true
             protocol => "node"
-            workers => {{ ansible_processor_count }}
+        }
+    } else if "mssql" in [tags] {
+            elasticsearch {
+            cluster => "{{ es_cluster_name }}"
+            node_name => "{{ ansible_hostname }}"
+            host => "{{ groups[es_group_name][0] }}"
+            index => "logstash-mssql"
+            protocol => "node"
         }
     } else {
         elasticsearch {
@@ -16,6 +23,5 @@
             node_name => "{{ ansible_hostname }}"
             host => "{{ groups[es_group_name][0] }}"
             protocol => "node"
-            workers => {{ ansible_processor_count }}
         }
     }

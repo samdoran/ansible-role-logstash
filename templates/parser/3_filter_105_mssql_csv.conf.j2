@@ -1,0 +1,43 @@
+    # --- MS SQL Error logs  --- #
+    if [type] == "csv" {
+        if "mssql" in [tags] {
+            csv {
+                columns => [ "host", "eventtime", "[file][path]", "errormessage" ]
+            }
+
+            # Extract number of occurences and time in seconds
+            if "SQL Server" in [errormessage] {
+                grok {
+                    match => { "errormessage" => "SQL Server has encountered %{INT:occurrences} occurrence\(s\) of I/?O requests taking longer than %{INT:seconds} seconds" }
+                }
+            }
+
+            # Extract drive letter, filename, and extension
+            if [file][path] {
+                grok {
+                    match => { "[file][path]" => "^(?<drive>[A-Za-z]):(%{DATA}\\)+%{NOTSPACE:[file][name]}\.%{NOTSPACE:[file][extension]}" }
+                }
+            }
+
+            # Extract school name
+            if [file][name] =~ /_[Dd]ata/  {
+                if [file][name] !~ /tempdev/ {
+                    grok {
+                        match => { "[file][name]" => "(?<school>[A-Za-z]+)_" }
+                    }
+                }
+            }
+
+            mutate {
+                lowercase => [ "host", "[file][extension]" ]
+                uppercase => [ "drive" ]
+            }
+
+            date {
+                match => [  "eventtime",
+                            "MM/dd/YYYY HH:mm:ss",
+                            "MM/ d/YYYY HH:mm:ss"
+                ]
+            }
+        }
+    }

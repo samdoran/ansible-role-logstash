@@ -1,0 +1,10 @@
+    # MSSQL error logs from Rob
+    file {
+        path => "/var/log/remote/sql-server-logs/*.csv"
+        sincedb_path => "/opt/logstash/sincedb/sincedb_csv"
+        exclude => [ "*.gz" ]
+        start_position => "beginning"
+        codec => "plain"
+        tags => [ "csv" , "mssql" ]
+        type => "csv"
+    }
