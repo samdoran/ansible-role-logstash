@@ -4,9 +4,6 @@
             node_name => "{{ ansible_hostname }}"
             host => "{{ groups[es_group_name][0] }}"
             index => "netflow-%{+YYYY.MM.dd}"
-            template => "/opt/logstash/templates/netflow-es-template.json"
-            template_name => "netflow"
-            template_overwrite => true
             protocol => "node"
         }
     } else if "mssql" in [tags] {
