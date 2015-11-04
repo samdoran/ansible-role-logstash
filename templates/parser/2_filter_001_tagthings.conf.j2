@@ -24,7 +24,7 @@
         # Check for digits then a '-' to match hostnames like '2960-1-1.adm'
         if [host] =~ /^([a-zA-Z])|(\d+-).*\./ {
             mutate { rename => [ "host" , "fqdn" ] }
-            grok   { match  => [ "fqdn" , "%{DATA:host}\.%{HOST:domain}$" ] }
+            grok   { match  => [ "fqdn" , "%{DATA:host}\.%{HOSTNAME:domain}$" ] }
             mutate { remove_field => [ "actual_source_host" ] }
         } else {
             mutate { remove_field => [ "actual_source_host" ] }

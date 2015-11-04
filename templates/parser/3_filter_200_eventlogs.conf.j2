@@ -102,7 +102,7 @@
         if [hostname] =~ /^[a-zA-Z].*\./ {
             mutate { rename => [ "hostname" , "fqdn" ] }
             grok   {
-                match  => [ "fqdn" , "%{DATA:host}\.%{HOST:domain}$" ]
+                match  => [ "fqdn" , "%{DATA:host}\.%{HOSTNAME:domain}$" ]
                 overwrite => [ "host" ]
                 overwrite => [ "domain" ]
             }

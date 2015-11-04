@@ -4,4 +4,4 @@ EXCVERSION (?:Version:%{SPACE})(%{INT}\.?)+
 EXCTIMESTAMP %{EXCDATE}%{SPACE}%{EXCTIME}
 
 
-EXCHANGELOGS %{EXCTIMESTAMP:eventtime}\t(-|%{IP:clientip})\t(-|\[?%{IPORHOST:client_host}\]?)\t(-|%{HOST:partner_name})\t(-|%{HOST:server_hostname})\t(-|%{IP:server_ip})\t(-|%{DATA:recipient_address})\t(-|%{INT:event_id})\t(-|%{DATA:message_id})\t(-|%{INT:priority})\t(-|%{INT:recipient_report_status})\t(-|%{INT:bytes})\t(-|%{INT:number_recipients})\t(-|%{EXCTIMESTAMP:origination_time})\t(-|%{INT:encryption})\t(-|%{EXCVERSION:service_version})\t(-|%{DATA:linked_messag_id})\t(-|%{DATA:message_subject})\t(-|%{DATA:sender_address})\t
+EXCHANGELOGS %{EXCTIMESTAMP:eventtime}\t(-|%{IP:clientip})\t(-|\[?%{IPORHOST:client_host}\]?)\t(-|%{HOSTNAME:partner_name})\t(-|%{HOSTNAME:server_hostname})\t(-|%{IP:server_ip})\t(-|%{DATA:recipient_address})\t(-|%{INT:event_id})\t(-|%{DATA:message_id})\t(-|%{INT:priority})\t(-|%{INT:recipient_report_status})\t(-|%{INT:bytes})\t(-|%{INT:number_recipients})\t(-|%{EXCTIMESTAMP:origination_time})\t(-|%{INT:encryption})\t(-|%{EXCVERSION:service_version})\t(-|%{DATA:linked_messag_id})\t(-|%{DATA:message_subject})\t(-|%{DATA:sender_address})\t
