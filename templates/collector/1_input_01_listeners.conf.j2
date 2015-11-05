@@ -1,3 +1,11 @@
+    # Get logs directly from rsyslog
+    tcp {
+        port => 1514
+        codec => ""
+        type => ""
+        tags => [ "syslog" ]
+    }
+
     # Open a port for collecting Windows Eventlogs from NXlog
     # logstash.crt must be installed on each Windows system for TLS to work
     tcp {
@@ -37,13 +45,3 @@
         tags => [ "netflow" ]
         type => "netflow"
     }
-
-    # udp {
-    #     port => 2056
-    #     codec => netflow {
-    #         versions => [9, 10]
-    #         # definitions => "/opt/logstash/templates/netflow9.yaml"
-    #     }
-    #     tags => [ "debug" ]
-    # }
-
