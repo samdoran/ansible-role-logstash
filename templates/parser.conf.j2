@@ -6,7 +6,9 @@ input {
 
 filter {
 
-{% include 'parser/2_filter_001_tagthings.conf.j2' %}
+{% include 'parser/2_filter_001_syslog_parse.conf.j2' %}
+
+{% include 'parser/2_filter_005_tagthings.conf.j2' %}
 
 {% include 'parser/3_filter_010_netflow.conf.j2' %}
 
@@ -18,7 +20,7 @@ filter {
 
 {% include 'parser/3_filter_080_nginx.conf.j2' %}
 
-{% include 'parser/3_filter_100_syslog.conf.j2' %}
+{% include 'parser/3_filter_100_syslog_grok.conf.j2' %}
 
 {% include 'parser/3_filter_105_mssql_csv.conf.j2' %}
 

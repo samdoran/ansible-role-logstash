@@ -1,8 +1,11 @@
     # Get logs directly from rsyslog
     tcp {
         port => 1514
-        codec => ""
-        type => ""
+        tags => [ "syslog" ]
+    }
+
+    udp {
+        port => 1514
         tags => [ "syslog" ]
     }
 

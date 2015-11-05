@@ -1,12 +1,12 @@
     # --- Tag things --- #
 
     # Tag session messages
-    if [type] == "syslog" and [message] =~ /session (opened|closed) for user/ {
+    if "syslog" in [tags] and [message] =~ /session (opened|closed) for user/ {
         mutate { add_tag => [ "session" ] }
     }
 
     # Tag login failures
-    if [type] == "syslog" and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)|(?i:login failure)|(?:bad login)/ {
+    if "syslog" in [tags] and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)|(?i:login failure)|(?:bad login)/ {
         mutate { add_tag => [ "authfail" ] }
     }
 
@@ -32,7 +32,7 @@
     }
 
     # Tag aerohive logs. This is based on the source IP address
-    if [source_ip] =~ /192\.168\.40\.1[567][0-9]/ {
+    if [host] =~ /192\.168\.40\.1[567][0-9]/ {
         mutate { add_tag => "aerohive" }
     }
 
