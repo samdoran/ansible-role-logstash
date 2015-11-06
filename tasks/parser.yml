@@ -7,7 +7,9 @@
     group: root
     mode: 0644
   tags: [ "logstash" , "config" , "parserconf" ]
-  notify: restart logstash
+  notify:
+    - test logstash config
+    - restart logstash
 
 - name: Copy logstash patterns
   copy:

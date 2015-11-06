@@ -1,4 +1,7 @@
 ---
+- name: test logstash config
+  command: /opt/logstash/bin/logstash -f /etc/logstash/conf.d/ -t
+
 - name: restart logstash
   service: name=logstash state=restarted
 
