@@ -1,0 +1,49 @@
+    # --- Parse raw syslog messages --- #
+
+    if "syslog" in [tags] {
+        grok {
+            match => { "message" => [
+                                        "<%{POSINT:[syslog][pri]}>(%{TIMESTAMP_ISO8601:[syslog][timestamp]} %{IPORHOST:fqdn} )?%{PROG:[syslog][program]}(?:\[%{POSINT:[syslog][pid]}\])?: %{GREEDYDATA:[syslog][message]}$",
+                                        "<%{POSINT:[syslog][pri]}>(%{TIMESTAMP_ISO8601:[syslog][timestamp]} %{IPORHOST:fqdn} )?%{PROG:[syslog][program]}\(%{DATA:cron_file}\)(?:\[%{POSINT:[syslog][pid]})? %{GREEDYDATA:[syslog][message]}$"
+                                    ]
+                    }
+        }
+
+        # Extract host and domain from FQDN
+        grok {
+            match => { "fqdn" => "%{DATA:hostname}\.%{HOSTNAME:domain}$" }
+        }
+
+        syslog_pri {
+            syslog_pri_field_name => "[syslog][pri]"
+        }
+
+        # If the host field contains an IP (starts with a digit), create a hostip
+        if [host] =~ /^[0-9]/ {
+            mutate {
+                add_field => { "hostip" => "%{host}" }
+            }
+        }
+
+        mutate {
+
+            lowercase => [ "[syslog][program]" ]
+            add_tag => [ "%{[syslog][program]}" ]
+
+            # Rename fields inserted by syslog_pri filter so they are hierarchicalal and
+            # look nicer.
+            rename => {
+                "syslog_severity_code" => "[syslog][severity_code]"
+                "syslog_facility_code" => "[syslog][facility_code]"
+                "syslog_facility" => "[syslog][facility]"
+                "syslog_severity" => "[syslog][severity]"
+            }
+
+            # Remove extra whitespace from beginning and end of message
+            strip => [ "[syslog][message]" ]
+        }
+
+        date {
+            match => [ "[syslog][timestamp]", "ISO8601" ]
+        }
+    }
