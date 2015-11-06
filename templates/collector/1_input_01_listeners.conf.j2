@@ -26,8 +26,6 @@
     # going straight to logstash will improve performance.
     udp {
         port => 4514
-        codec => "plain"
-        type => "cisco"
         tags => [ "cisco" , "network" ]
     }
 
@@ -35,7 +33,6 @@
     # They will be output to /opt/logstash/debug.log
     udp {
         port => 4500
-        codec => "plain"
         tags => [ "debug" ]
     }
 
