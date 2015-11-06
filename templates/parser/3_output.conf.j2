@@ -1,37 +1,33 @@
     if "netflow" in [tags] {
         elasticsearch {
             cluster => "{{ es_cluster_name }}"
+            node_name => "{{ ansible_hostname }}"
             host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "http"
-            ssl => true
-            ssl_certificate_verification => false
+            protocol => "node"
             index => "logstash-netflow-%{+YYYY.MM.dd}"
         }
     } else if "mssql" in [tags] {
-            elasticsearch {
+        elasticsearch {
             cluster => "{{ es_cluster_name }}"
+            node_name => "{{ ansible_hostname }}"
             host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "http"
-            ssl => true
-            ssl_certificate_verification => false
+            protocol => "node"
             index => "logstash-mssql"
         }
     } else if [syslog][program] =~ /(postfix|dkim)/ {
         elasticsearch {
             cluster => "{{ es_cluster_name }}"
+            node_name => "{{ ansible_hostname }}"
             host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "http"
-            ssl => true
-            ssl_certificate_verification => false
+            protocol => "node"
             index => "logstash-postfix-%{+YYYY.MM.dd}"
         }
     } else {
         elasticsearch {
             cluster => "{{ es_cluster_name }}"
+            node_name => "{{ ansible_hostname }}"
             host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "http"
-            ssl => true
-            ssl_certificate_verification => false
+            protocol => "node"
         }
     }
 
