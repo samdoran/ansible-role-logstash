@@ -1,6 +1,6 @@
     # --- Nginx logs --- #
-    if "nginx" in [tags] {
-        if [type] == "nginx-access" {
+    if [syslog][program] =~ "nginx" {
+        if [syslog][program] == "nginx-access" {
             grok {
                 patterns_dir => [ "/opt/logstash/patterns" ]
                 match => [ "message" , "(?m)%{NGINX_ROYALL}" ]
@@ -22,7 +22,7 @@
             }
         }
 
-        if [type] == "nginx-error" {
+        if [syslog][program] == "nginx-error" {
             grok {
                 patterns_dir => [ "/opt/logstash/patterns" ]
                 match => [ "message" , "(?m)%{NGINX_ERROR}" ]

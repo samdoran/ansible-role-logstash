@@ -1,5 +1,5 @@
 ---
-- name: Install packages
+- name: Install packages needed by Logstash
   yum: name={{ item }} state=present
   tags: packages
   with_items:
