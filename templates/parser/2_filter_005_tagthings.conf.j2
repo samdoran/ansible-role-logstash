@@ -1,12 +1,12 @@
     # --- Tag things --- #
 
     # Tag session messages
-    if [type] == "syslog" and [message] =~ /session (opened|closed) for user/ {
+    if "syslog" in [tags] and [message] =~ /session (opened|closed) for user/ {
         mutate { add_tag => [ "session" ] }
     }
 
     # Tag login failures
-    if [type] == "syslog" and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)|(?i:login failure)|(?:bad login)/ {
+    if "syslog" in [tags] and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)|(?i:login failure)|(?:bad login)/ {
         mutate { add_tag => [ "authfail" ] }
     }
 
@@ -24,7 +24,7 @@
         # Check for digits then a '-' to match hostnames like '2960-1-1.adm'
         if [host] =~ /^([a-zA-Z])|(\d+-).*\./ {
             mutate { rename => [ "host" , "fqdn" ] }
-            grok   { match  => [ "fqdn" , "%{DATA:host}\.%{HOST:domain}$" ] }
+            grok   { match  => [ "fqdn" , "%{DATA:host}\.%{HOSTNAME:domain}$" ] }
             mutate { remove_field => [ "actual_source_host" ] }
         } else {
             mutate { remove_field => [ "actual_source_host" ] }
@@ -32,11 +32,28 @@
     }
 
     # Tag aerohive logs. This is based on the source IP address
-    if [source_ip] =~ /192\.168\.40\.1[567][0-9]/ {
+    if [hostip] =~ /192\.168\.40\.1[567][0-9]/ {
         mutate { add_tag => "aerohive" }
     }
 
     # Hardwick Day APs
-    if [host] =~ /10\.16\.5\.13[45]/ {
+    if [hostip] =~ /10\.16\.5\.13[45]/ {
         mutate { add_tag => "aerohive" }
+    }
+
+    if [syslog][program] =~ "mongo" {
+        mutate { add_tag => "mongo" }
+    }
+
+    if [syslog][program] =~ "postfix"{
+        mutate { add_tag => "postfix" }
+    }
+
+    if [syslog][program] =~ "dkim"{
+        mutate { add_tag => "dkim" }
+    }
+
+    # Synology logs
+    if [sdid] =~ "synolog" {
+        mutate { add_tag => "synolog" }
     }

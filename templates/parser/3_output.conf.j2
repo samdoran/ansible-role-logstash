@@ -2,26 +2,33 @@
         elasticsearch {
             cluster => "{{ es_cluster_name }}"
             node_name => "{{ ansible_hostname }}"
-            host => "{{ groups[es_group_name][0] }}"
-            index => "logstash-netflow-%{+YYYY.MM.dd}"
-            template => "/opt/logstash/templates/netflow-es-template.json"
-            template_name => "netflow"
-            template_overwrite => true
+            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
             protocol => "node"
+            index => "logstash-netflow-%{+YYYY.MM.dd}"
         }
     } else if "mssql" in [tags] {
-            elasticsearch {
+        elasticsearch {
             cluster => "{{ es_cluster_name }}"
             node_name => "{{ ansible_hostname }}"
-            host => "{{ groups[es_group_name][0] }}"
-            index => "logstash-mssql"
+            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
             protocol => "node"
+            index => "logstash-mssql"
+        }
+    } else if [syslog][program] =~ /(postfix|dkim)/ {
+        elasticsearch {
+            cluster => "{{ es_cluster_name }}"
+            node_name => "{{ ansible_hostname }}"
+            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
+            protocol => "node"
+            index => "logstash-postfix-%{+YYYY.MM.dd}"
         }
     } else {
         elasticsearch {
             cluster => "{{ es_cluster_name }}"
             node_name => "{{ ansible_hostname }}"
-            host => "{{ groups[es_group_name][0] }}"
+            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
             protocol => "node"
+            workers => "{{ ansible_processor_count }}"
         }
     }
+

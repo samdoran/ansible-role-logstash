@@ -1,0 +1,22 @@
+input {
+
+{% include 'collector/1_input_01_listeners.conf.j2' %}
+
+{% include 'collector/1_input_25_mssql_csv.conf.j2' %}
+
+}
+
+filter {
+
+    # Remove header lines from CSV files
+    if [type] == "csv" {
+        if [message] =~ /^Server/ {
+            drop {}
+        }
+    }
+}
+
+output {
+{% include 'collector/3_output.conf.j2' %}
+
+}

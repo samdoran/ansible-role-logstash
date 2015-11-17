@@ -1,13 +1,15 @@
 ---
-- name: Copy shipper config
+- name: Copy collector config
   template:
-    src: shipper.conf.j2
-    dest: /etc/logstash/conf.d/shipper.conf
+    src: collector.conf.j2
+    dest: /etc/logstash/conf.d/collector.conf
     owner: root
     group: root
     mode: 0644
-  tags: [ "logstash" , "config" , "shipperconf" ]
-  notify: restart logstash
+  tags: [ "logstash" , "config" , "collectorconf" ]
+  notify:
+    - test logstash config
+    - restart logstash
 
 - name: Copy logstash SSL certificate
   template:

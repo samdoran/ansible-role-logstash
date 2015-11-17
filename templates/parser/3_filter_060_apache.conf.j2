@@ -1,21 +1,7 @@
     # --- Apache logs --- #
-    if "apache" in [tags] {
+    if [syslog][program] =~ "apache" {
         # Drop stdout from processes run by apache
         if [message] =~ /^\s*\b\w+\b:/ { drop {} }
-
-        # Add tags based on path. The paths are created based on rsyslog tags
-        # by rsyslog.
-        if [path] =~ /apache-access/ {
-            mutate {
-                add_tag => [ "access" ]
-            }
-        }
-
-        if [path] =~ /apache-error/ {
-            mutate {
-                add_tag => [ "error" ]
-            }
-        }
 
         grok {
             patterns_dir => [ "/opt/logstash/patterns" ]

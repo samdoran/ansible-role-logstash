@@ -61,3 +61,19 @@
     directory_mode: 0755
   notify: restart logstash
   tags: [ "logstash" , "config" , "parserconf" , "templates" ]
+
+- name: List installed Logstash plugins
+  command: /opt/logstash/bin/plugin list
+  become_user: logstash
+  changed_when: False
+  register: logstash_installed_plugins
+  tags: [ "logstash" , "lsplugins" ]
+  when: logstash_plugins is defined
+
+- name: Install additional Logstash plugins
+  command: /opt/logstash/bin/plugin install {{ item }}
+  become_user: logstash
+  with_items: logstash_plugins
+  when: "logstash_plugins is defined and '{{ item }}' not in logstash_installed_plugins.stdout_lines"
+  tags: [ "logstash" , "lsplugins" ]
+  notify: restart logstash

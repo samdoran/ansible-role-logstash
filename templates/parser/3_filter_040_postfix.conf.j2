@@ -1,5 +1,5 @@
     # --- Postfix logs --- #
-    if "postfix" in [tags] or "dkimproxy.out" in [tags] {
+    if "postfix" in [tags] or "dkim" in [tags] {
         kv {
             trim => "<>,"
         }
@@ -13,7 +13,6 @@
         if "postfix" in [tags] {
             grok {
                 match => [ "message" , "postfix/?%{DATA:subprogram}\[" ]
-                add_tag => [ "grokked" ]
             }
         }
     }

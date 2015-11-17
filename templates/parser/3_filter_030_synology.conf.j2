@@ -1,0 +1,24 @@
+    # --- Synology logs --- #
+    if "synolog" in [tags] {
+
+        kv {
+            source => "kvme"
+            target => "synology"
+            trim => "\""
+        }
+
+        mutate {
+            remove_field => "kvme"
+            gsub => [ "[synology][event]", "[\\]", "" ]
+        }
+
+        grok {
+            match => { "[synology][event]" =>   [
+                                                    "User \[%{USER:user}\] logged in from \[%{IPORHOST:clientip}\] via \[%{WORD:[synology][application]}\]",
+                                                    "%{WORD:[synology][protocol]} client \[%{USER:user}\] from \[%{HOSTNAME:[synology][client_hostname]}\(IP:%{IP:[synology][client_ip]}\)\] accessed the shared folder \[%{WORD:[synology][shared_folder]}",
+                                                    "System successfully (stopped|started) \[%{WORD:[synology][program]}\]"
+                                                ]
+            }
+        }
+
+    }
