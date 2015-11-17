@@ -52,3 +52,8 @@
     if [syslog][program] =~ "dkim"{
         mutate { add_tag => "dkim" }
     }
+
+    # Synology logs
+    if [sdid] =~ "synolog" {
+        mutate { add_tag => "synolog" }
+    }

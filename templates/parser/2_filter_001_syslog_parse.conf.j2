@@ -4,14 +4,19 @@
         grok {
             match => { "message" => [
                                         "<%{POSINT:[syslog][pri]}>(%{TIMESTAMP_ISO8601:[syslog][timestamp]} %{IPORHOST:fqdn} )?%{PROG:[syslog][program]}(?:\[%{POSINT:[syslog][pid]}\])?: %{GREEDYDATA:[syslog][message]}$",
-                                        "<%{POSINT:[syslog][pri]}>(%{TIMESTAMP_ISO8601:[syslog][timestamp]} %{IPORHOST:fqdn} )?%{PROG:[syslog][program]}\(%{DATA:cron_file}\)(?:\[%{POSINT:[syslog][pid]})? %{GREEDYDATA:[syslog][message]}$"
+                                        "<%{POSINT:[syslog][pri]}>(%{TIMESTAMP_ISO8601:[syslog][timestamp]} %{IPORHOST:fqdn} )?%{PROG:[syslog][program]}\(%{DATA:cron_file}\)(?:\[%{POSINT:[syslog][pid]})? %{GREEDYDATA:[syslog][message]}$",
+                                        "<%{POSINT:[syslog][pri]}>%{INT} (%{TIMESTAMP_ISO8601:[syslog][timestamp]} %{IPORHOST:fqdn} )?%{PROG:[syslog][program]} - - (\[%{DATA:[sdid]} %{DATA:kvme})?\[meta sequenceId=\"%{INT:sequenceid}\"\] %{GREEDYDATA:[syslog][message]}"
                                     ]
                     }
         }
 
         # Extract host and domain from FQDN
-        grok {
-            match => { "fqdn" => "%{DATA:hostname}\.%{HOSTNAME:domain}$" }
+        if [fqdn] =~ /\./ {
+            grok {
+                match => { "fqdn" => "%{DATA:hostname}\.%{HOSTNAME:domain}$" }
+            }
+        } else {
+            mutate { add_field => { "hostname" => "%{fqdn}" } }
         }
 
         syslog_pri {
