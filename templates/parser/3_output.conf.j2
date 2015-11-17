@@ -28,6 +28,7 @@
             node_name => "{{ ansible_hostname }}"
             host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
             protocol => "node"
+            workers => "{{ ansible_processor_count }}"
         }
     }
 
