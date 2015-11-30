@@ -4,7 +4,15 @@
             node_name => "{{ ansible_hostname }}"
             host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
             protocol => "node"
-            index => "logstash-netflow-%{+YYYY.MM.dd}"
+            index => "logstash-netflow-%{+YYYY.MM}"
+        }
+    } else if [syslog][program] == "tac_plus" {
+        elasticsearch {
+            cluster => "{{ es_cluster_name }}"
+            node_name => "{{ ansible_hostname }}"
+            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
+            protocol => "node"
+            index => "logstash-tacacs-%{+YYYY.MM}"
         }
     } else if "mssql" in [tags] {
         elasticsearch {
