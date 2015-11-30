@@ -7,11 +7,11 @@
         }
     } else {
         redis {
-            host => [ "{{ redis_host_1 }}" , "{{ redis_host_2 }}"]
+            host => [ "{{ redis_host_1 }}", "{{ redis_host_2 }}" ]
             shuffle_hosts => true
             port => "5678"
             data_type => "list"
             key => "logstash"
-            # workers => {{ ansible_processor_count // 3 }}
+            workers => {{ ansible_processor_count // 3 }}
         }
     }
