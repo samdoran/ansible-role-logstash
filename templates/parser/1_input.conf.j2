@@ -15,6 +15,7 @@
         codec => "json"
         threads => {{ (ansible_processor_count * 15) // 10 }}
     }
+
 {% if ansible_hostname == "logstash-02" %}
     imap {
         host => "mg.royall.com"

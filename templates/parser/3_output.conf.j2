@@ -22,6 +22,14 @@
             protocol => "node"
             index => "logstash-postfix-%{+YYYY.MM.dd}"
         }
+    } else if "firewall" in [tags] {
+        elasticsearch {
+            cluster => "{{ es_cluster_name }}"
+            node_name => "{{ ansible_hostname }}"
+            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
+            protocol => "node"
+            index => "logstash-firewall-%{+YYYY.MM.dd}"
+        }
     } else {
         elasticsearch {
             cluster => "{{ es_cluster_name }}"
