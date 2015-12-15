@@ -54,7 +54,16 @@
                   "message", "%{CISCOFW602303_602304}",
                   "message", "%{CISCOFW710001_710002_710003_710005_710006}",
                   "message", "%{CISCOFW713172}",
-                  "message", "%{CISCOFW733100}"
+                  "message", "%{CISCOFW733100}",
+                  "message", "%{IP:src_ip} %{CISCO_ACTION:action} URL %{IP:dst_ip}:%{GREEDYDATA:url}",
+                  "message", "AAA group policy for user %{USER:user} is being set to %{WORD:group_policy}",
+                  "message", "AAA user authentication %{CISCO_ACTION:action} : server%{SPACE}=%{SPACE}%{IP:dst_ip} : user = %{USER:user}",
+                  "message", "AAA retrieved %{DATA} group policy \(%{WORD:group_policy}\) for user = %{USER:user}",
+                  "message", "AAA transaction status %{WORD:action} : user = %{USER:user}",
+                  "message", "Group <%{WORD:group_policy}> User <%{USER:user}> IP <%{IP:src_ip}>(( IPv4 Address <%{IP:vpn_ip}>%{DATA})|( AAA parameter <%{WORD:aaa_parameter}>)| (%{WORD:connection} parent session))",
+                  "message", "WebVPN session for client user %{USER:user}, IP %{IP:src_ip} has been %{CISCO_ACTION:action}",
+                  "message", "User %{USER:user}, Addr %{IP:src_ip}, Connection %{WORD:connection}:%{DATA}: %{WORD:group_policy}",
+                  "message", "TunnelGroup <%{WORD:tunnel_group}> GroupPolicy <%{WORD:group_policy}> User <%{USER:user}> IP <%{IP:src_ip}>"
                 ]
             }
 

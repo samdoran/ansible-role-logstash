@@ -1,1 +1,2 @@
 CISCOEVENTTIME %{MONTH}%{SPACE}%{MONTHDAY} %{TIME}( %{WORD}:)?
+CISCO_ACTION [Aa]ccessed|Built|Teardown|Deny|Denied|denied|requested|permitted|denied by ACL|discarded|est-allowed|Dropping|created|deleted|[Ss]uccessful
