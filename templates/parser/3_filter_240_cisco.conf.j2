@@ -9,14 +9,6 @@
             }
         }
 
-        # Remove leading <158> from messages
-        # Note sure what this is but, it's ugly
-        if [message] =~ /^<\d+>/ {
-            mutate {
-                gsub => [ "message" , "^<\d+>" , "" ]
-            }
-        }
-
         # --- ASA logs --- #
 
         if [message] =~ /%ASA-\d-\d+:/ {
@@ -147,6 +139,7 @@
                             "message" , "%{CISCOEVENTTIME:eventime}( %%{DATA:program})?: Configured from vty by %{WORD:user} on %{IP:clientip}@%{DATA:terminal}$",
                             "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: list %{WORD:acl} %{WORD:verb} %{WORD:protocol} %{IP:src_ip}\(%{INT:src_port}\) -> %{IP:dst_ip}\(%{INT:dst_port}\)",
                             "message" , "%{CISCOEVENTTIME:eventtime}( %%{DATA:program})?: list %{WORD:acl} %{WORD:verb} %{INT} %{IPORHOST:src_ip} -> %{IPORHOST:dst_ip}",
+                            "message" , "%{CISCOEVENTTIME:eventtime} %%{DATA:program}: list %{WORD:acl} %{WORD:verb} %{IP:src_ip}",
                             "message" , "%{CISCOEVENTTIME:eventtime}( %%{DATA:program})?: \(target:class\)-\(%{DATA:policy_map}:%{DATA:policy}\) %{WORD:verb} %{WORD:protocol} pkt %{IPORHOST:src_ip}:%{INT:src_port} => %{IPORHOST:dst_ip}:%{INT:dst_port}",
                             "message" , "%{CISCOEVENTTIME:eventtime}( %%{DATA:program})?:"
                         ]

@@ -5,6 +5,11 @@
         mutate { add_tag => [ "session" ] }
     }
 
+    # Cisco IOS
+    if "syslog" in [tags] and [syslog][facility] == "local3" {
+        mutate { add_tag => [ "cisco" ] }
+    }
+
     # Tag login failures
     if "syslog" in [tags] and [message] =~ /(?i:invalid user)|(authentication failure)|(Failed password)|(?i:login failure)|(?:bad login)/ {
         mutate { add_tag => [ "authfail" ] }
