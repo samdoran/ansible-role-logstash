@@ -3,4 +3,5 @@ TACFROM %{SPACE}%{IP:clientip}%{SPACE}%{WORD:status}
 
 TACPLUS_ERROR tac_plus\[%{INT}\]: (Error )?%{IPORHOST:clientip}({%SPACE})?:
 TACPLUS_LOGIN_FAIL login failure: %{USER:user} %{IPORHOST:clientip} \(%{IPORHOST:ip}\) %{WORD:tty}
+TACPLUS_QUERY %{WORD:query} query for '%{USER:user}' %{WORD:tty} from %{IPORHOST:clientip} %{WORD:action}
 TACPLUS  %{IP:ip}%{SPACE}%{USER:user}%{SPACE}%{WORD:tty}%{TACFROM}%{GREEDYDATA}
