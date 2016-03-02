@@ -51,4 +51,9 @@
         date {
             match => [ "[syslog][timestamp]", "ISO8601" ]
         }
+
+        geoip {
+            source => "clientip"
+        }
+
     }
