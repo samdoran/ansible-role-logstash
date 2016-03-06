@@ -16,8 +16,7 @@ Role Variables
 | Name                     | Default | Descrription |
 |---------------------------|--------|---------------|
 | `logstash_open_files`    | 65535    | Set ulimit to this number for logstash process   |
-| `redis_host_1`    |  null   |  IP or hostname for first redis server |
-| `redis_host_2`    |  null   | IP or hostname for first second server  |
+| `redis_group_name`    |  'redis'   | Name of inventory group that contains redis host(s) |
 | `logstash_ssl_crt_path`    | /etc/pki/tls/certs    | Path where SSL cert will be copied   |
 | `logstash_ssl_key_path`    | /etc/pki/tls/private    | Path where SSL private key will be copied   |
 | `logsasth_ssl_crt`    |  null   |  Public SSL cert |

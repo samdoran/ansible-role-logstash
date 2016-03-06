@@ -7,11 +7,15 @@
         }
     } else {
         redis {
-            host => [ "{{ redis_host_1 }}", "{{ redis_host_2 }}" ]
+            host => [ {% for host in groups[redis_group_name] %}"{{ host }}"
+            {%- if not loop.last %}, {% endif -%}
+            {%- endfor %} ]
             shuffle_hosts => true
             port => "5678"
             data_type => "list"
             key => "logstash"
             workers => {{ ansible_processor_count // 3 }}
+            }
+            }
         }
     }

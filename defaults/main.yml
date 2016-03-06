@@ -2,9 +2,7 @@
 # Logstash settings
 logstash_open_files: 65535
 
-# Redis hosts
-redis_host_1:
-redis_host_2:
+redis_group_name: redis
 
 # SSL configuration
 logstash_ssl_crt_path:  /etc/pki/tls/certs

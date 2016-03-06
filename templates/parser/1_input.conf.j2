@@ -1,5 +1,6 @@
+{% for host in groups[redis_group_name] %}
     redis {
-        host => "{{ redis_host_1 }}"
+        host => "{{ host }}"
         port => 5678
         data_type => "list"
         key => "logstash"
@@ -7,16 +8,8 @@
         threads => {{ (ansible_processor_count * 15) // 10 }}
     }
 
-    redis {
-        host => "{{ redis_host_2 }}"
-        port => 5678
-        data_type => "list"
-        key => "logstash"
-        codec => "json"
-        threads => {{ (ansible_processor_count * 15) // 10 }}
-    }
-
-{% if ansible_hostname == "logstash-02" %}
+{% endfor %}
+{% if ansible_hostname == groups['ls_parser'][1].split('.')[0] %}
     imap {
         host => "mg.royall.com"
         user => "productionroot"
