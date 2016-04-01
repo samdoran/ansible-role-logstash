@@ -1,5 +1,6 @@
 ---
 logstash_version: 2.3
+logstash_plugin_binary: "{% if logstash_version >= 2.3 %}logstash-plugin{% else %}plugin{% endif %}"
 logstash_open_files: 65535
 
 redis_group_name: redis
