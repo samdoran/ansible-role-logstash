@@ -8,8 +8,8 @@
     mode: 0644
   tags:
     - logstash
-    - config
-    - collectorconf
+    - ls-config
+    - ls-collectorconf
   notify:
     - test logstash config
     - restart logstash
@@ -23,9 +23,9 @@
     mode: 0644
   tags:
     - logstash
-    - config
-    - parserconf
-    - ssl
+    - ls-config
+    - ls-parserconf
+    - ls-ssl
 
 - name: Copy logstash SSL private key
   template:
@@ -36,6 +36,6 @@
     mode: 0600
   tags:
     - logstash
-    - config
-    - parserconf
-    - ssl
+    - ls-config
+    - ls-parserconf
+    - ls-ssl

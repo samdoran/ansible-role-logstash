@@ -5,6 +5,7 @@
     state: latest
   tags:
     - logstash
+    - ls-plugins
 
 - name: Set ownership on /var/log/logstash
   file:
@@ -46,10 +47,10 @@
     owner: root
     group: root
     mode: 0644
+  notify: restart logstash
   tags:
     - logstash
-    - config
-  notify: restart logstash
+    - ls-config
 
 - name: Copy templates
   copy:
@@ -62,29 +63,29 @@
   notify: restart logstash
   tags:
     - logstash
-    - config
-    - parserconf
-    - templates
+    - ls-config
+    - ls-parserconf
+    - ls-templates
 
 - name: List installed Logstash plugins
-  command: /opt/logstash/bin/plugin list
+  command: /opt/logstash/bin/{{ logstash_plugin_binary }} list
   become_user: logstash
   changed_when: False
   register: logstash_installed_plugins
   when: logstash_plugins is defined
   tags:
     - logstash
-    - lsplugins
+    - ls-plugins
 
 - name: Install additional Logstash plugins
-  command: /opt/logstash/bin/plugin install {{ item }}
+  command: /opt/logstash/bin/{{ logstash_plugin_binary }} install {{ item }}
   become_user: logstash
   with_items: "{{ logstash_plugins }}"
   when: "logstash_plugins is defined and '{{ item }}' not in logstash_installed_plugins.stdout_lines"
   notify: restart logstash
   tags:
     - logstash
-    - lsplugins
+    - ls-plugins
 
 - name: Start and enable Logstash
   service:

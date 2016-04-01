@@ -11,8 +11,8 @@
     - restart logstash
   tags:
     - logstash
-    - config
-    - parserconf
+    - ls-config
+    - ls-parserconf
 
 - name: Copy logstash patterns
   copy:
@@ -25,6 +25,6 @@
   notify: restart logstash
   tags:
     - logstash
-    - config
-    - parserconf
-    - patterns
+    - ls-config
+    - ls-parserconf
+    - ls-patterns

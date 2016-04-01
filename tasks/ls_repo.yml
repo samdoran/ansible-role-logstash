@@ -6,7 +6,7 @@
   register: current_logstash_version
   tags:
     - logstash
-    - yum
+    - ls-repo
 
 - name: Remove old repos
   file:
@@ -18,7 +18,7 @@
     stride=1
   tags:
     - logstash
-    - yum
+    - ls-repo
 
 - name: Remove logstash-contrib
   yum:
@@ -27,7 +27,7 @@
   when: "{{ current_logstash_version | float }} < 1.5"
   tags:
     - logstash
-    - yum
+    - ls-repo
 
 - name: Install logstash repo
   template:
@@ -38,7 +38,7 @@
     mode: 0644
   tags:
     - logstash
-    - yum
+    - ls-repo
 
 - name: Install Elasticsearch GPG key
   rpm_key:
@@ -46,4 +46,4 @@
     state: present
   tags:
     - logstash
-    - yum
+    - ls-repo
