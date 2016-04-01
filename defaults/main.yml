@@ -1,5 +1,5 @@
 ---
-# Logstash settings
+logstash_version: 2.3
 logstash_open_files: 65535
 
 redis_group_name: redis
