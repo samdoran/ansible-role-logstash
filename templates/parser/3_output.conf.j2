@@ -50,7 +50,6 @@
             ssl => true
             ssl_certificate_verification => false
             {% endif -%}
-            workers => "{{ ansible_processor_count }}"
         }
     }
 
