@@ -7,6 +7,22 @@
     - logstash
     - ls-plugins
 
+- name: Get new Logstash version
+  shell: /opt/logstash/bin/logstash --version | cut -d ' ' -f 2
+  changed_when: False
+  ignore_errors: True
+  register: new_logstash_version
+  tags:
+    - logstash
+    - ls-repo
+    - ls-parserconf
+    - logstash-cron
+    - ls-plugins
+    - ls-template
+    - ls-collectorconf
+    - ls-ssl
+    - ls-patterns
+
 - name: Set ownership on /var/log/logstash
   file:
     path: /var/log/logstash
