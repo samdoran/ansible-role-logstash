@@ -7,6 +7,13 @@
   tags:
     - logstash
     - ls-repo
+    - ls-parserconf
+    - logstash-cron
+    - ls-plugins
+    - ls-template
+    - ls-collectorconf
+    - ls-ssl
+    - ls-patterns
 
 - name: Remove old repos
   file:
