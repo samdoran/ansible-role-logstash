@@ -1,14 +1,15 @@
 Logstash
 ========
+[![Galaxy](https://img.shields.io/badge/galaxy-samdoran.logstash-blue.svg?style=flat)](https://galaxy.ansible.com/samdoran/logstash)
 
-Setup logstash shipping and parsing nodes. Two groups, `ls_parser` and `ls_shipper` should contain the appropriate hosts. The `ls_shipper` host takes files as input, does minimal processing, then outputs to redis. The `ls_parser` hosts take input from redis, process, then output to an elasticsearch cluster.
+Setup logstash shipping and parsing nodes. Two groups, `ls_parser` and `ls_shipper` should contain the appropriate hosts. The `ls_shipper` host takes files as input, does minimal processing, then outputs to `redis`. The `ls_parser` hosts take input from redis, process, then output to an elasticsearch cluster.
 
 Requirements
 ------------
 
 * Java
-* logstash user account
-* logreader user group
+* `redis` target
+* `elasticsearch` hosts
 
 Role Variables
 --------------
@@ -29,14 +30,11 @@ Dependencies
 
 * redis
 * elasticsearch
-* kibana
 
 Example Playbook
 -------------------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: ls_parser;ls_shipper
+    - hosts: ls_parser:ls_shipper
       roles:
          - logstash
 
