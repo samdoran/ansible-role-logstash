@@ -1,50 +1,55 @@
     if "netflow" in [tags] {
         elasticsearch {
-            cluster => "{{ es_cluster_name }}"
-            node_name => "{{ ansible_hostname }}"
-            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "node"
+            hosts => [ {% for host in groups[es_group_name] %}"{{ host }}:{{ es_http_port }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
+            {% if es_ssl_proxy -%}
+            ssl => true
+            ssl_certificate_verification => false
+            {% endif -%}
             index => "logstash-netflow-%{+YYYY.MM}"
         }
     } else if [syslog][program] == "tac_plus" {
         elasticsearch {
-            cluster => "{{ es_cluster_name }}"
-            node_name => "{{ ansible_hostname }}"
-            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "node"
+            hosts => [ {% for host in groups[es_group_name] %}"{{ host }}:{{ es_http_port }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
+            {% if es_ssl_proxy -%}
+            ssl => true
+            ssl_certificate_verification => false
+            {% endif -%}
             index => "logstash-tacacs-%{+YYYY.MM}"
         }
     } else if "mssql" in [tags] {
         elasticsearch {
-            cluster => "{{ es_cluster_name }}"
-            node_name => "{{ ansible_hostname }}"
-            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "node"
+            hosts => [ {% for host in groups[es_group_name] %}"{{ host }}:{{ es_http_port }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
+            {% if es_ssl_proxy -%}
+            ssl => true
+            ssl_certificate_verification => false
+            {% endif -%}
             index => "logstash-mssql"
         }
     } else if [syslog][program] =~ /(postfix|dkim)/ {
         elasticsearch {
-            cluster => "{{ es_cluster_name }}"
-            node_name => "{{ ansible_hostname }}"
-            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "node"
+            hosts => [ {% for host in groups[es_group_name] %}"{{ host }}:{{ es_http_port }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
+            {% if es_ssl_proxy -%}
+            ssl => true
+            ssl_certificate_verification => false
+            {% endif -%}
             index => "logstash-postfix-%{+YYYY.MM.dd}"
         }
     } else if "firewall" in [tags] {
         elasticsearch {
-            cluster => "{{ es_cluster_name }}"
-            node_name => "{{ ansible_hostname }}"
-            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "node"
+            hosts => [ {% for host in groups[es_group_name] %}"{{ host }}:{{ es_http_port }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
+            {% if es_ssl_proxy -%}
+            ssl => true
+            ssl_certificate_verification => false
+            {% endif -%}
             index => "logstash-firewall-%{+YYYY.MM.dd}"
         }
     } else {
         elasticsearch {
-            cluster => "{{ es_cluster_name }}"
-            node_name => "{{ ansible_hostname }}"
-            host => [ {% for host in groups[es_group_name] %}"{{ host }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
-            protocol => "node"
-            workers => "{{ ansible_processor_count }}"
+            hosts => [ {% for host in groups[es_group_name] %}"{{ host }}:{{ es_http_port }}"{% if not loop.last %}, {% endif %}{% endfor %} ]
+            {% if es_ssl_proxy -%}
+            ssl => true
+            ssl_certificate_verification => false
+            {% endif -%}
         }
     }
 

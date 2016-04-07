@@ -6,7 +6,10 @@
     owner: root
     group: root
     mode: 0644
-  tags: [ "logstash" , "config" , "collectorconf" ]
+  tags:
+    - logstash
+    - ls-config
+    - ls-collectorconf
   notify:
     - test logstash config
     - restart logstash
@@ -18,7 +21,11 @@
     owner: root
     group: root
     mode: 0644
-  tags: [ "logstash" , "config" , "parserconf" , "ssl" ]
+  tags:
+    - logstash
+    - ls-config
+    - ls-parserconf
+    - ls-ssl
 
 - name: Copy logstash SSL private key
   template:
@@ -27,4 +34,8 @@
     owner: logstash
     group: root
     mode: 0600
-  tags: [ "logstash" , "config" , "parserconf" , "ssl" ]
+  tags:
+    - logstash
+    - ls-config
+    - ls-parserconf
+    - ls-ssl

@@ -1,9 +1,12 @@
 ---
 - name: Install packages needed by Logstash
-  yum: name={{ item }} state=present
-  tags: packages
+  yum:
+    name: "{{ item }}"
+    state: present
   with_items:
     - java-1.8.0-openjdk
+  tags:
+    - logstash
 
 - include: ls_repo.yml
 - include: ls_setup.yml

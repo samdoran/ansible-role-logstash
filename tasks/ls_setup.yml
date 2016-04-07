@@ -3,14 +3,25 @@
   yum:
     name: logstash
     state: latest
-  tags: logstash
+  tags:
+    - logstash
+    - ls-plugins
 
-- name: Enable Logstash
-  service:
-    name: logstash
-    enabled: yes
-    state: started
-  tags: logstash
+- name: Get new Logstash version
+  shell: /opt/logstash/bin/logstash --version | cut -d ' ' -f 2
+  changed_when: False
+  ignore_errors: True
+  register: new_logstash_version
+  tags:
+    - logstash
+    - ls-repo
+    - ls-parserconf
+    - logstash-cron
+    - ls-plugins
+    - ls-template
+    - ls-collectorconf
+    - ls-ssl
+    - ls-patterns
 
 - name: Set ownership on /var/log/logstash
   file:
@@ -18,13 +29,8 @@
     owner: logstash
     group: logstash
     recurse: yes
-  tags: logstash
-
-- name: Create logreader group
-  group:
-    name: logreader
-    gid: 520
-  tags: logstash
+  tags:
+    - logstash
 
 - name: Create sincedb directory
   file:
@@ -32,14 +38,8 @@
     path: /opt/logstash/sincedb
     owner: logstash
     group: logstash
-  tags: logstash
-
-- name: Add logstash to logreader group
-  user:
-    name: logstash
-    append: yes
-    groups: logreader
-  tags: logstash
+  tags:
+    - logstash
 
 - name: Copy logstash sysconfig
   template:
@@ -48,8 +48,10 @@
     owner: root
     group: root
     mode: 0644
-  tags: [ 'logstash' , 'config' ]
   notify: restart logstash
+  tags:
+    - logstash
+    - ls-config
 
 - name: Copy templates
   copy:
@@ -60,20 +62,36 @@
     mode: 0644
     directory_mode: 0755
   notify: restart logstash
-  tags: [ "logstash" , "config" , "parserconf" , "templates" ]
+  tags:
+    - logstash
+    - ls-config
+    - ls-parserconf
+    - ls-templates
 
 - name: List installed Logstash plugins
-  command: /opt/logstash/bin/plugin list
+  command: /opt/logstash/bin/{{ logstash_plugin_binary }} list
   become_user: logstash
   changed_when: False
   register: logstash_installed_plugins
-  tags: [ "logstash" , "lsplugins" ]
   when: logstash_plugins is defined
+  tags:
+    - logstash
+    - ls-plugins
 
 - name: Install additional Logstash plugins
-  command: /opt/logstash/bin/plugin install {{ item }}
+  command: /opt/logstash/bin/{{ logstash_plugin_binary }} install {{ item }}
   become_user: logstash
-  with_items: logstash_plugins
+  with_items: "{{ logstash_plugins }}"
   when: "logstash_plugins is defined and '{{ item }}' not in logstash_installed_plugins.stdout_lines"
-  tags: [ "logstash" , "lsplugins" ]
   notify: restart logstash
+  tags:
+    - logstash
+    - ls-plugins
+
+- name: Start and enable Logstash
+  service:
+    name: logstash
+    enabled: yes
+    state: started
+  tags:
+    - logstash

@@ -1,9 +1,11 @@
 ---
+# A bug in 2.3.0 broke the validation option
+# https://github.com/elastic/logstash/issues/4933
 - name: test logstash config
   command: /opt/logstash/bin/logstash -f /etc/logstash/conf.d/ -t
+  when: new_logstash_version.stdout != "2.3.0"
 
 - name: restart logstash
-  service: name=logstash state=restarted
-
-- name: install elasticsearch gpg key
-  rpm_key: key=/etc/pki/rpm-gpg/GPG-KEY-elasticsearch state=present
+  service:
+    name: logstash
+    state: restarted
