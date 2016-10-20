@@ -5,8 +5,8 @@ logstash_open_files: 65535
 redis_group_name: redis
 
 # SSL configuration
-logstash_ssl_crt_path:  /etc/pki/tls/certs
-logstash_ssl_key_path:  /etc/pki/tls/private
+logstash_ssl_crt_path: /etc/pki/tls/certs
+logstash_ssl_key_path: /etc/pki/tls/private
 
 
 # logstash_ssl_crt: |
