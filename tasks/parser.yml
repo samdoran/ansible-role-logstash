@@ -1,4 +1,3 @@
----
 - name: Copy logstash parser configuration
   template:
     src: parser.conf.j2

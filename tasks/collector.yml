@@ -1,4 +1,3 @@
----
 - name: Copy collector config
   template:
     src: collector.conf.j2

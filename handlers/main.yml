@@ -1,4 +1,3 @@
----
 # A bug in 2.3.0 broke the validation option
 # https://github.com/elastic/logstash/issues/4933
 - name: test logstash config
