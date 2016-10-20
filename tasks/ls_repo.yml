@@ -1,4 +1,4 @@
-- name: Get current Logstash version
+- name: REPO | Get current Logstash version
   shell: /opt/logstash/bin/logstash --version | cut -d ' ' -f 2
   changed_when: False
   ignore_errors: True
@@ -14,10 +14,10 @@
     - ls-ssl
     - ls-patterns
 
-- name: Remove old repos
+- name: REPO | Remove old repos
   file:
-    path=/etc/yum.repos.d/logstash-1-{{ item }}.repo
-    state=absent
+    path: /etc/yum.repos.d/logstash-1-{{ item }}.repo
+    state: absent
   with_sequence:
     start=1
     end=5
@@ -26,7 +26,7 @@
     - logstash
     - ls-repo
 
-- name: Remove logstash-contrib
+- name: REPO | Remove logstash-contrib
   yum:
     name: logstash-contrib
     state: absent
@@ -35,7 +35,7 @@
     - logstash
     - ls-repo
 
-- name: Install logstash repo
+- name: REPO | Install logstash repo
   template:
     src: logstash.repo.j2
     dest: /etc/yum.repos.d/logstash.repo
@@ -46,7 +46,7 @@
     - logstash
     - ls-repo
 
-- name: Install Elasticsearch GPG key
+- name: REPO | Install Elasticsearch GPG key
   rpm_key:
     key: "https://packages.elastic.co/GPG-KEY-elasticsearch"
     state: present

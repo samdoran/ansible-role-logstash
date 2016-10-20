@@ -1,4 +1,4 @@
-- name: Copy collector config
+- name: COLLECTOR | Copy collector config
   template:
     src: collector.conf.j2
     dest: /etc/logstash/conf.d/collector.conf
@@ -13,7 +13,7 @@
     - test logstash config
     - restart logstash
 
-- name: Copy logstash SSL certificate
+- name: COLLECTOR | Copy logstash SSL certificate
   template:
     src: logstash.crt.j2
     dest: "{{ logstash_ssl_crt_path }}/logstash.crt"
@@ -26,7 +26,7 @@
     - ls-parserconf
     - ls-ssl
 
-- name: Copy logstash SSL private key
+- name: COLLECTOR | Copy logstash SSL private key
   template:
     src: logstash.key.j2
     dest: "{{ logstash_ssl_key_path }}/logstash.key"

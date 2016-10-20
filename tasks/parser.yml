@@ -1,4 +1,4 @@
-- name: Copy logstash parser configuration
+- name: PARSER | Copy logstash parser configuration
   template:
     src: parser.conf.j2
     dest: /etc/logstash/conf.d/parser.conf
@@ -13,7 +13,7 @@
     - ls-config
     - ls-parserconf
 
-- name: Copy logstash patterns
+- name: PARSER | Copy logstash patterns
   copy:
     src: patterns
     dest: /opt/logstash/

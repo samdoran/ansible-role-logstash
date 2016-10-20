@@ -1,4 +1,4 @@
-- name: Install logstash
+- name: SETUP | Install logstash
   yum:
     name: logstash
     state: latest
@@ -6,7 +6,7 @@
     - logstash
     - ls-plugins
 
-- name: Get new Logstash version
+- name: SETUP | Get new Logstash version
   shell: /opt/logstash/bin/logstash --version | cut -d ' ' -f 2
   changed_when: False
   ignore_errors: True
@@ -22,7 +22,7 @@
     - ls-ssl
     - ls-patterns
 
-- name: Set ownership on /var/log/logstash
+- name: SETUP | Set ownership on /var/log/logstash
   file:
     path: /var/log/logstash
     owner: logstash
@@ -31,7 +31,7 @@
   tags:
     - logstash
 
-- name: Create sincedb directory
+- name: SETUP | Create sincedb directory
   file:
     state: directory
     path: /opt/logstash/sincedb
@@ -40,7 +40,7 @@
   tags:
     - logstash
 
-- name: Copy logstash sysconfig
+- name: SETUP | Copy logstash sysconfig
   template:
     src: sysconfig-logstash.j2
     dest: /etc/sysconfig/logstash
@@ -52,7 +52,7 @@
     - logstash
     - ls-config
 
-- name: Copy templates
+- name: SETUP | Copy templates
   copy:
     src: templates
     dest: /opt/logstash/
@@ -67,7 +67,7 @@
     - ls-parserconf
     - ls-templates
 
-- name: List installed Logstash plugins
+- name: SETUP | List installed Logstash plugins
   command: /opt/logstash/bin/{{ logstash_plugin_binary }} list
   become_user: logstash
   changed_when: False
@@ -77,7 +77,7 @@
     - logstash
     - ls-plugins
 
-- name: Install additional Logstash plugins
+- name: SETUP | Install additional Logstash plugins
   command: /opt/logstash/bin/{{ logstash_plugin_binary }} install {{ item }}
   become_user: logstash
   with_items: "{{ logstash_plugins }}"
@@ -87,7 +87,7 @@
     - logstash
     - ls-plugins
 
-- name: Start and enable Logstash
+- name: SETUP | Start and enable Logstash
   service:
     name: logstash
     enabled: yes
