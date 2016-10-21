@@ -1,6 +1,20 @@
 logstash_version: 2.4
 logstash_plugin_binary: "{{ ( logstash_version | version_compare('2.3', '>=') ) | ternary('plugin', 'logstash-plugin') }}"
-logstash_open_files: 65535
+
+# Logstash system config
+logstash_java_command: /usr/bin/java
+logstash_home: /var/lib/logstash
+logstash_opts: "--debug"
+logstash_heap_size: "{{ ansible_memtotal_mb // 2 }}m"
+logstash_java_opts: "-Djava.io.tmpdir=$HOME"
+logstash_pid_file: /var/run/logstash.pid
+logstash_user: logstash
+logstash_group: "{{ logstash_user }}"
+logstash_log_file: /var/log/logstash/logstash.log
+logstash_use_gc_logging: "true"
+logstash_config_dir: /etc/logstash/conf.d
+logstash_open_files: 16384
+logstash_nice_level: 0
 
 redis_group_name: redis
 
