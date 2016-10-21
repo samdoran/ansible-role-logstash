@@ -1,4 +1,4 @@
-logstash_version: 2.3
+logstash_version: 2.4
 logstash_plugin_binary: "{{ ( logstash_version | version_compare('2.3', '>=') ) | ternary('plugin', 'logstash-plugin') }}"
 logstash_open_files: 65535
 
