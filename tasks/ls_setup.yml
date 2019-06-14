@@ -6,31 +6,6 @@
     - logstash
     - ls-plugins
 
-- name: SETUP | Get new Logstash version
-  shell: /opt/logstash/bin/logstash --version | cut -d ' ' -f 2
-  changed_when: False
-  ignore_errors: True
-  register: new_logstash_version
-  tags:
-    - logstash
-    - ls-repo
-    - ls-parserconf
-    - logstash-cron
-    - ls-plugins
-    - ls-template
-    - ls-collectorconf
-    - ls-ssl
-    - ls-patterns
-
-- name: SETUP | Set ownership on /var/log/logstash
-  file:
-    path: /var/log/logstash
-    owner: logstash
-    group: logstash
-    recurse: yes
-  tags:
-    - logstash
-
 - name: SETUP | Create sincedb directory
   file:
     state: directory
@@ -57,7 +32,7 @@
     src: templates
     dest: /opt/logstash/
     owner: logstash
-    group: logreader
+    group: logstash
     mode: 0644
     directory_mode: 0755
   notify: restart logstash
@@ -70,7 +45,7 @@
 - name: SETUP | List installed Logstash plugins
   command: /opt/logstash/bin/{{ logstash_plugin_binary }} list
   become_user: logstash
-  changed_when: False
+  changed_when: no
   register: logstash_installed_plugins
   when: logstash_plugins is defined
   tags:
@@ -80,8 +55,8 @@
 - name: SETUP | Install additional Logstash plugins
   command: /opt/logstash/bin/{{ logstash_plugin_binary }} install {{ item }}
   become_user: logstash
-  with_items: "{{ logstash_plugins }}"
-  when: "logstash_plugins is defined and '{{ item }}' not in logstash_installed_plugins.stdout_lines"
+  with_items: "{{ logstash_plugins | default([]) }}"
+  when: item not in logstash_installed_plugins.stdout_lines
   notify: restart logstash
   tags:
     - logstash

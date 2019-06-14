@@ -2,6 +2,11 @@
   remote_user: vagrant
   become: yes
 
+  pre_tasks:
+    - add_host:
+        name: "{{ inventory_hostname }}"
+        groups: ls_parser, ls_collector
+
   roles:
     - java
     - logstash

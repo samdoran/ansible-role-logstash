@@ -2,7 +2,7 @@
 
     if "debug" in [tags] {
         file {
-            path => "/opt/logstash/debug.log"
+            path => "{{ logstash_log_file | dirname }}debug.log"
             codec => "rubydebug"
         }
     } else {

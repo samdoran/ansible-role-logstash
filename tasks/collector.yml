@@ -14,8 +14,8 @@
     - restart logstash
 
 - name: COLLECTOR | Copy logstash SSL certificate
-  template:
-    src: logstash.crt.j2
+  copy:
+    contents: "{{ logstash_ssl_crt }}"
     dest: "{{ logstash_ssl_crt_path }}/logstash.crt"
     owner: root
     group: root
@@ -27,8 +27,8 @@
     - ls-ssl
 
 - name: COLLECTOR | Copy logstash SSL private key
-  template:
-    src: logstash.key.j2
+  copy:
+    contents: "{{ logstash_ssl_key }}"
     dest: "{{ logstash_ssl_key_path }}/logstash.key"
     owner: logstash
     group: root
