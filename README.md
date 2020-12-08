@@ -42,5 +42,4 @@ Example Playbook
 License
 -------
 
-MIT
-
+Apache 2.0
