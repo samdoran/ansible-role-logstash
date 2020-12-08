@@ -4,7 +4,7 @@
     dest: /etc/yum.repos.d/logstash.repo
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   tags:
     - logstash
     - ls-repo

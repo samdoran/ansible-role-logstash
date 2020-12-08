@@ -4,7 +4,7 @@
     dest: /etc/logstash/conf.d/parser.conf
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   notify:
     - test logstash config
     - restart logstash
@@ -19,8 +19,8 @@
     dest: /opt/logstash/
     owner: logstash
     group: logreader
-    mode: 0644
-    directory_mode: 0755
+    mode: '0644'
+    directory_mode: '0755'
   notify: restart logstash
   tags:
     - logstash

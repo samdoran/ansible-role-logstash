@@ -4,7 +4,7 @@
     dest: /etc/logstash/conf.d/collector.conf
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   tags:
     - logstash
     - ls-config
@@ -19,7 +19,7 @@
     dest: "{{ logstash_ssl_crt_path }}/logstash.crt"
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   tags:
     - logstash
     - ls-config
@@ -32,7 +32,7 @@
     dest: "{{ logstash_ssl_key_path }}/logstash.key"
     owner: logstash
     group: root
-    mode: 0600
+    mode: '0600'
   tags:
     - logstash
     - ls-config
