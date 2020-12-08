@@ -1,13 +1,13 @@
 - name: Configure Logstash repo
-  include: ls_repo.yml
+  import_tasks: ls_repo.yml
 
 - name: Install and configure Logstash
-  include: ls_setup.yml
+  import_tasks: ls_setup.yml
 
 - name: Configure parsing nodes
-  include: parser.yml
+  include_tasks: parser.yml
   when: '"ls_parser" in group_names'
 
 - name: Configure collector nodes
-  include: collector.yml
+  include_tasks: collector.yml
   when: '"ls_collector" in group_names'
