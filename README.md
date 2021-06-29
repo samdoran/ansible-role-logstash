@@ -1,7 +1,5 @@
 Logstash
 ========
-[![Galaxy](https://img.shields.io/badge/galaxy-samdoran.logstash-blue.svg?style=flat)](https://galaxy.ansible.com/samdoran/logstash)
-[![Build Status](https://travis-ci.org/samdoran/ansible-role-logstash.svg?branch=master)](https://travis-ci.org/samdoran/ansible-role-logstash)
 
 Setup logstash shipping and parsing nodes. Two groups, `ls_parser` and `ls_shipper` should contain the appropriate hosts. The `ls_shipper` host takes files as input, does minimal processing, then outputs to `redis`. The `ls_parser` hosts take input from redis, process, then output to an elasticsearch cluster.
 
